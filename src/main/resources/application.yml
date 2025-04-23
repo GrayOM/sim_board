@@ -1,0 +1,21 @@
+# spring 과 mysql 연결
+spring:
+  datasource:
+    url: jdbc:mysql://db:3306/board_db?useSSL=false&serverTimezone=UTC #docker-compose.yml 와 동일
+    username: root # 동일
+    password: root # 동일
+    driver-class-name: com.mysql.cj.jdbc.Driver  #mysql 드라이버 클래스
+
+  jpa: # java api -> DB CRUD 작업을 간편하게 해주는 api
+    hibernate:
+      ddl-auto: update # 실행 시 데이터베이스 테이블을 자동으로 생성,업뎃함
+    show-sql: true # SQL 쿼리 로그 출력 여부
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+server:
+    servlet:
+      session:
+        cookie:
+          secure: false #  http 테스트를 위해 false (배포 true)
+          http-only: true # JS 접근 차단
+        timeout: 10m
