@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 상세</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 th:text="${board.title}">게시글 제목</h2>
+            <div>
+                <span th:text="'작성자: ' + ${board.user.name}">작성자</span>
+                <span class="ms-3" th:text="'작성일: ' + ${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-4">
+                <p class="card-text" th:text="${board.content}">게시글 내용</p>
+            </div>
+
+            <!-- 첨부 파일 목록 -->
+            <div class="mb-4" th:if="${!files.isEmpty()}">
+                <h5>첨부 파일</h5>
+                <ul class="list-group">
+                    <li class="list-group-item" th:each="file : ${files}">
+                        <a th:href="@{'/boards/file/' + ${file.id}}" th:text="${file.originalFilename}">파일명</a>
+                        <span class="badge bg-secondary" th:text="${#numbers.formatDecimal(file.fileSize / 1024, 0, 1)} + ' KB'">파일크기</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 게시글 작성자만 볼 수 있는 수정/삭제 버튼 -->
+            <div class="mb-4" th:if="${#authentication.principal.username == board.user.username}">
+                <a th:href="@{'/boards/' + ${board.id} + '/edit'}" class="btn btn-primary me-2">수정</a>
+                <a th:href="@{'/boards/' + ${board.id} + '/delete'}" class="btn btn-danger"
+                   onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 댓글 목록 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>댓글</h4>
+        </div>
+        <div class="card-body">
+            <div class="mb-4" th:if="${comments.isEmpty()}">
+                <p>등록된 댓글이 없습니다.</p>
+            </div>
+            <div class="mb-3" th:each="comment : ${comments}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong th:text="${comment.user.name}">작성자</strong>
+                        <small class="text-muted ms-2" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
+                    </div>
+                    <div th:if="${#authentication.principal.username == comment.user.username}">
+                        <a href="#" data-bs-toggle="modal" th:data-bs-target="'#editCommentModal' + ${comment.id}" class="btn btn-sm btn-outline-primary me-1">수정</a>
+                        <a th:href="@{'/comments/' + ${comment.id} + '/delete?boardId=' + ${board.id}}" class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('댓글을 삭제하시겠습니까?');">삭제</a>
+                    </div>
+                </div>
+                <p class="mt-2" th:text="${comment.content}">댓글 내용</p>
+                <hr>
+
+                <!-- 댓글 수정 모달 -->
+                <div class="modal fade" th:id="'editCommentModal' + ${comment.id}" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editCommentModalLabel">댓글 수정</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form th:action="@{'/comments/' + ${comment.id}}" method="post">
+                                    <input type="hidden" name="boardId" th:value="${board.id}">
+                                    <div class="mb-3">
+                                        <textarea name="content" class="form-control" rows="3" required th:text="${comment.content}"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">수정</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 댓글 작성 폼 -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>댓글 작성</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{'/comments/board/' + ${board.id}}" th:object="${newComment}" method="post">
+                        <div class="mb-3">
+                            <textarea th:field="*{content}" class="form-control" rows="3" placeholder="댓글을 입력하세요" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">등록</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="/boards" class="btn btn-secondary">목록으로</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
