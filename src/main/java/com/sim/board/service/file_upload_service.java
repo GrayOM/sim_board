@@ -39,12 +39,16 @@ public class file_upload_service {
         String uploadPath = new File(uploadDir).getAbsolutePath();
         File dir = new File(uploadPath);
         if (!dir.exists()) {
-            dir.mkdirs();
+            boolean created = dir.mkdirs();
+            if(!created)
+            {
+                throw new IOException("디렉토리 생성에 실패했습니다 : " + uploadPath);
+            }
         }
 
         // 저장할 파일명 생성 (UUID + 원본 파일명)
         String originalFilename = file.getOriginalFilename();
-        String storedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
+        String storedFilename = UUID.randomUUID() + "_" + originalFilename;
         String filePath = uploadPath + File.separator + storedFilename;
 
         // 파일 저장

@@ -37,7 +37,7 @@ public class board_service {
 
     // 게시글 수정
     @Transactional
-    public board updateBoard(Long id, board boardRequest, user user) {
+    public void updateBoard(Long id, board boardRequest, user user) {
         board board = getBoard(id);
 
         // 작성자 확인
@@ -48,7 +48,7 @@ public class board_service {
         board.setTitle(boardRequest.getTitle());
         board.setContent(boardRequest.getContent());
 
-        return boardRepository.save(board);
+        boardRepository.save(board);
     }
 
     // 게시글 삭제

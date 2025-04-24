@@ -30,6 +30,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'  // Spring Boot 3.x와 Security 6 사용시
+
+
 	// Thymeleaf (REST API만 사용할 경우 주석 처리 가능)
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 

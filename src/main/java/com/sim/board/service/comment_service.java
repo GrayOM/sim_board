@@ -26,19 +26,19 @@ public class comment_service {
 
     // 댓글 작성
     @Transactional
-    public comment createComment(Long boardId, comment comment, user user) {
+    public void createComment(Long boardId, comment comment, user user) {
         board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
         comment.setBoard(board);
         comment.setUser(user);
 
-        return commentRepository.save(comment);
+        commentRepository.save(comment);
     }
 
     // 댓글 수정
     @Transactional
-    public comment updateComment(Long commentId, comment commentRequest, user user) {
+    public void updateComment(Long commentId, comment commentRequest, user user) {
         comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
 
@@ -49,7 +49,7 @@ public class comment_service {
 
         comment.setContent(commentRequest.getContent());
 
-        return commentRepository.save(comment);
+        commentRepository.save(comment);
     }
 
     // 댓글 삭제

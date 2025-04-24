@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -17,9 +18,9 @@ public class user_controller {
 
     private final user_service userService;
 
-    //인덱스 페이지
+    // 인덱스 페이지
     @GetMapping("/")
-    public String indexform(){
+    public String indexform() {
         return "redirect:/boards";
     }
 
@@ -31,6 +32,14 @@ public class user_controller {
             return "redirect:/boards";
         }
         return "user/login";
+    }
+
+    // 로그인 성공 처리 (Spring Security 설정에서 defaultSuccessUrl 수정 필요)
+    @GetMapping("/login-success")
+    public String loginSuccess(@AuthenticationPrincipal UserDetails userDetails, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addAttribute("login", true);
+        redirectAttributes.addAttribute("username", userDetails.getUsername());
+        return "redirect:/boards";
     }
 
     // 회원가입 페이지

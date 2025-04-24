@@ -18,17 +18,17 @@ public class security_config {
         http
                 .csrf(AbstractHttpConfigurer::disable)  // CSRF 비활성화 (API 서버의 경우)
                 .authorizeHttpRequests(auth -> auth //인증,인가 설정
-                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()  // 각 경로들은 인가가 별도로 설정되지않음
+                        .requestMatchers("/", "/login", "/login-success", "/register", "/css/**", "/js/**", "/images/**").permitAll()  // 각 경로들은 인가가 별도로 설정되지않음
                         .requestMatchers("/api/**").permitAll()  // api 로 시작하는 경로도 따로 인가없이 접근 허용
                         .anyRequest().authenticated()  // 위에 설정을 제외한 모든 요청은 부여받은 인가나 관리자 권한 인증이 필요함
                 )
                 .formLogin(login -> login
-                        .loginPage("/login")  // 로그인  경로 설정
-                        .defaultSuccessUrl("/boards", true)  // 로그인 성공시 접속 경로
+                        .loginPage("/login")  // 로그인 경로 설정
+                        .defaultSuccessUrl("/login-success", true)  // 로그인 성공시 접속 경로 수정
                         .permitAll() // 로그인 페이지에 대한 접근은 모두 허용 시킴
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login")  // 로그아웃 성공 시 경로
+                        .logoutSuccessUrl("/boards?logout")  // 로그아웃 성공 시 경로 수정
                         .permitAll() // 로그아웃 요청은 모두 허용 시킴
                 );
 
