@@ -24,11 +24,11 @@ public class security_config {
                 )
                 .formLogin(login -> login
                         .loginPage("/login")  // 로그인  경로 설정
-                        .defaultSuccessUrl("/", true)  // 로그인 성공시 접속 경로
+                        .defaultSuccessUrl("/boards", true)  // 로그인 성공시 접속 경로
                         .permitAll() // 로그인 페이지에 대한 접근은 모두 허용 시킴
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/")  // 로그아웃 성공 시 경로
+                        .logoutSuccessUrl("/login")  // 로그아웃 성공 시 경로
                         .permitAll() // 로그아웃 요청은 모두 허용 시킴
                 );
 

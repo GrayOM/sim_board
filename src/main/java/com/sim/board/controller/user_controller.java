@@ -3,6 +3,8 @@ package com.sim.board.controller;
 import com.sim.board.domain.user;
 import com.sim.board.service.user_service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,15 +17,29 @@ public class user_controller {
 
     private final user_service userService;
 
+    //인덱스 페이지
+    @GetMapping("/")
+    public String indexform(){
+        return "redirect:/boards";
+    }
+
     // 로그인 페이지
     @GetMapping("/login")
-    public String loginForm() {
+    public String loginForm(@AuthenticationPrincipal UserDetails userDetails) {
+        // 이미 로그인한 사용자는 게시판 목록으로 리다이렉트
+        if (userDetails != null) {
+            return "redirect:/boards";
+        }
         return "user/login";
     }
 
     // 회원가입 페이지
     @GetMapping("/register")
-    public String registerForm(Model model) {
+    public String registerForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        // 이미 로그인한 사용자는 게시판 목록으로 리다이렉트
+        if (userDetails != null) {
+            return "redirect:/boards";
+        }
         model.addAttribute("user", new user());
         return "user/register";
     }
