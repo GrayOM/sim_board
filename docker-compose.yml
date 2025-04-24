@@ -1,31 +1,29 @@
-#Docker Compose 설정 파일
-version: '3.8' # Docker compose 버전 Docker Compose version v2.34.0-desktop.1
+version: '3'
 
-#Spring boot 애플리케이션 서비스 정의
 services:
-  db: # mysql DB docker 컨테이너로 실행하기 위한 설정
-    image: mysql:8.0 #mysql 8.0 이미지를 사용
-    environment:
-      - MYSQL_ROOT_PASSWORD=root #루트 비번
-      - MYSQL_DATABASE=board_db #컨테이너 시작 시 생성할 데이터베이스
-    volumes:
-      - db_data:/var/lin/mysql # mysql 기본 데이터 디렉토리 , 컨테이너를 재시작해도 유지
-
   app:
-    build: . #현재 경로에 dockerfile 사용
+    build: .
     ports:
-      - "8080:8080" #호스트 매핑
+      - "8080:8080"
     depends_on:
       - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/board_db?useSSL=false&serverTimezone=UTC #SSL비활성화 , 서버시간은 UTC 시간 설정
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update # 개발하고있을때는 update -> 운영일때는 none 으로 수정한다. [데이터베이스 스키마를 자동으로 업데이트함 ]
-      SPRING_JPA_SHOW_SQL: true # 실행하는 SQL 쿼리를 콘솔에 출력 -> 운영일때도 log 를 남기는게 좋을때는 ? true 로 방치 , 성능이 과부하면 false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/board_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    volumes:
+      - ./uploads:/app/uploads  # 파일 업로드를 위한 볼륨 매핑
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=board_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql  # MySQL 데이터 지속을 위한 볼륨
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
 volumes:
-  db_data: #DB data 저장
-
-
-
+  mysql-data:  # 볼륨 정의

@@ -1,0 +1,96 @@
+package com.sim.board.service;
+
+import com.sim.board.domain.board;
+import com.sim.board.domain.fileupload;
+import com.sim.board.repository.board_repository;
+import com.sim.board.repository.file_upload_repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class file_upload_service {
+
+    private final file_upload_repository fileRepository;
+    private final board_repository boardRepository;
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;  // application.yml에 설정한 업로드 경로
+
+    // 파일 업로드
+    @Transactional
+    public fileupload uploadFile(MultipartFile file, Long boardId) throws IOException {
+        // 게시글 존재 여부 확인
+        board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        // 파일 저장 경로 생성
+        String uploadPath = new File(uploadDir).getAbsolutePath();
+        File dir = new File(uploadPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        // 저장할 파일명 생성 (UUID + 원본 파일명)
+        String originalFilename = file.getOriginalFilename();
+        String storedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
+        String filePath = uploadPath + File.separator + storedFilename;
+
+        // 파일 저장
+        Path targetLocation = Paths.get(filePath);
+        Files.copy(file.getInputStream(), targetLocation);
+
+        // 파일 정보 데이터베이스에 저장
+        fileupload fileEntity = fileupload.builder()
+                .originalFilename(originalFilename)
+                .storedFilename(storedFilename)
+                .filePath(filePath)
+                .fileSize(file.getSize())
+                .board(board)
+                .build();
+
+        return fileRepository.save(fileEntity);
+    }
+
+    // 파일 다운로드를 위한 파일 정보 조회
+    @Transactional(readOnly = true)
+    public fileupload getFile(Long fileId) {
+        return fileRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다."));
+    }
+
+    // 게시글에 첨부된 파일 목록 조회
+    @Transactional(readOnly = true)
+    public List<fileupload> getFilesByBoardId(Long boardId) {
+        return fileRepository.findByBoardId(boardId);
+    }
+
+    // 파일 삭제
+    @Transactional
+    public void deleteFile(Long fileId) {
+        fileupload file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다."));
+
+        // 실제 파일 삭제
+        try {
+            Path filePath = Paths.get(file.getFilePath());
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException("파일 삭제 중 오류가 발생했습니다.", e);
+        }
+
+        // 데이터베이스에서 파일 정보 삭제
+        fileRepository.delete(file);
+    }
+}
