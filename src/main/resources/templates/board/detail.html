@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@
             </div>
 
             <!-- 게시글 작성자만 볼 수 있는 수정/삭제 버튼 -->
-            <div class="mb-4" th:if="${#authentication.principal.username == board.user.username}">
+            <div class="mb-4" sec:authorize="isAuthenticated()" th:if="${#authentication.principal.username == board.user.username}">
                 <a th:href="@{'/boards/' + ${board.id} + '/edit'}" class="btn btn-primary me-2">수정</a>
                 <a th:href="@{'/boards/' + ${board.id} + '/delete'}" class="btn btn-danger"
                    onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
@@ -56,7 +56,7 @@
                         <strong th:text="${comment.user.name}">작성자</strong>
                         <small class="text-muted ms-2" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
                     </div>
-                    <div th:if="${#authentication.principal.username == comment.user.username}">
+                    <div sec:authorize="isAuthenticated()" th:if="${#authentication.principal.username == comment.user.username}">
                         <a href="#" data-bs-toggle="modal" th:data-bs-target="'#editCommentModal' + ${comment.id}" class="btn btn-sm btn-outline-primary me-1">수정</a>
                         <a th:href="@{'/comments/' + ${comment.id} + '/delete?boardId=' + ${board.id}}" class="btn btn-sm btn-outline-danger"
                            onclick="return confirm('댓글을 삭제하시겠습니까?');">삭제</a>
@@ -89,8 +89,8 @@
                 </div>
             </div>
 
-            <!-- 댓글 작성 폼 -->
-            <div class="card mt-4">
+            <!-- 댓글 작성 폼 - 로그인한 사용자만 표시 -->
+            <div class="card mt-4" sec:authorize="isAuthenticated()">
                 <div class="card-header">
                     <h5>댓글 작성</h5>
                 </div>
@@ -103,6 +103,13 @@
                         </div>
                         <button type="submit" class="btn btn-primary">등록</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- 로그인하지 않은 사용자에게 표시할 메시지 -->
+            <div class="card mt-4" sec:authorize="!isAuthenticated()">
+                <div class="card-body text-center">
+                    <p>댓글을 작성하려면 <a th:href="@{/login}">로그인</a>이 필요합니다.</p>
                 </div>
             </div>
         </div>

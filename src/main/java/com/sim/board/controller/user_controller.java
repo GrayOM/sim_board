@@ -53,10 +53,16 @@ public class user_controller {
         return "user/register";
     }
 
-    // 회원가입 처리
     @PostMapping("/register")
-    public String register(@ModelAttribute user user) {
-        userService.register(user);
-        return "redirect:/login";
+    public String register(@ModelAttribute user user, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            userService.register(user);
+            redirectAttributes.addFlashAttribute("registrationSuccess", "회원가입이 성공적으로 완료되었습니다.");
+            return "redirect:/login";
+        } catch (RuntimeException e) {
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("user", user);
+            return "user/register";
+        }
     }
 }

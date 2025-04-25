@@ -19,7 +19,10 @@ public class user_service {
     public user register(user user) {
         // 사용자명과 이메일 중복 검사
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("이미 사용 중인 사용자명입니다.");
+            throw new RuntimeException("이미 사용 중인 아이디입니다.");
+        }
+        if (userRepository.existsByName(user.getName())) {
+            throw new RuntimeException("이미 사용 중인 이름입니다.");
         }
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("이미 사용 중인 이메일입니다.");

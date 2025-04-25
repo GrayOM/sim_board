@@ -57,7 +57,7 @@
                     <td>
                         <a th:href="@{'/boards/' + ${board.id}}" th:text="${board.title}">게시글 제목</a>
                     </td>
-                    <td th:text="${board.user.name}">작성자</td>
+                    <td th:text="${board.user.username}">작성자</td>
                     <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</td>
                 </tr>
                 </tbody>
