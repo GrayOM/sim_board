@@ -63,16 +63,4 @@ public class board_service {
 
         boardRepository.delete(board);
     }
-
-    // 제목으로 게시글 검색
-    @Transactional(readOnly = true)
-    public Page<board> searchBoardsByTitle(String title, Pageable pageable) {
-        return boardRepository.findByTitleContaining(title, pageable);
-    }
-
-    // 내용으로 게시글 검색
-    @Transactional(readOnly = true)
-    public Page<board> searchBoardsByContent(String content, Pageable pageable) {
-        return boardRepository.findByContentContaining(content, pageable);
-    }
 }

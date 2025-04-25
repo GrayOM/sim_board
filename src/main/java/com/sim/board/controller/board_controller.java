@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -43,27 +46,10 @@ public class board_controller {
     // 게시글 목록
     @GetMapping
     public String list(Model model,
-                       @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
-                       @RequestParam(required = false) String searchType,
-                       @RequestParam(required = false) String keyword) {
+                       @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<board> boards;
-
-        if (keyword != null && !keyword.isEmpty()) {
-            if ("title".equals(searchType)) {
-                boards = boardService.searchBoardsByTitle(keyword, pageable);
-            } else if ("content".equals(searchType)) {
-                boards = boardService.searchBoardsByContent(keyword, pageable);
-            } else {
-                boards = boardService.getBoardList(pageable);
-            }
-        } else {
-            boards = boardService.getBoardList(pageable);
-        }
-
+        Page<board> boards = boardService.getBoardList(pageable);
         model.addAttribute("boards", boards);
-        model.addAttribute("searchType", searchType);
-        model.addAttribute("keyword", keyword);
 
         return "board/list";
     }
@@ -78,15 +64,15 @@ public class board_controller {
     // 게시글 저장
     @PostMapping
     public String write(@ModelAttribute board board,
-                        @RequestParam(required = false) List<MultipartFile> files,
+                        @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
         user user = userService.getUserByUsername(userDetails.getUsername());
         board savedBoard = boardService.createBoard(board, user);
 
         // 파일 처리
-        if (files != null && !files.isEmpty()) {
-            for (MultipartFile file : files) {
+        if (uploadFiles != null && !uploadFiles.isEmpty()) {
+            for (MultipartFile file : uploadFiles) {
                 if (!file.isEmpty()) {
                     fileService.uploadFile(file, savedBoard.getId());
                 }
@@ -122,7 +108,11 @@ public class board_controller {
             return "redirect:/boards/" + id;
         }
 
+        // 파일 목록 조회
+        List<fileupload> files = fileService.getFilesByBoardId(id);
+
         model.addAttribute("board", board);
+        model.addAttribute("files", files);  // 파일 목록을 모델에 추가
         return "board/edit";
     }
 
@@ -130,10 +120,31 @@ public class board_controller {
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @ModelAttribute board board,
-                         @AuthenticationPrincipal UserDetails userDetails) {
+                         @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
+                         @RequestParam(name = "deleteExistingFiles", required = false) Boolean deleteExistingFiles,
+                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
         user user = userService.getUserByUsername(userDetails.getUsername());
         boardService.updateBoard(id, board, user);
+
+        // 기존 파일 삭제 옵션이 선택된 경우
+        if (deleteExistingFiles != null && deleteExistingFiles) {
+            // 기존 파일 목록 조회
+            List<fileupload> existingFiles = fileService.getFilesByBoardId(id);
+            // 기존 파일 삭제
+            for (fileupload file : existingFiles) {
+                fileService.deleteFile(file.getId());
+            }
+        }
+
+        // 새 파일 업로드 처리
+        if (uploadFiles != null && !uploadFiles.isEmpty()) {
+            for (MultipartFile file : uploadFiles) {
+                if (!file.isEmpty()) {
+                    fileService.uploadFile(file, id);
+                }
+            }
+        }
 
         return "redirect:/boards/" + id;
     }
@@ -147,6 +158,7 @@ public class board_controller {
         return "redirect:/boards";
     }
 
+    // 파일 다운로드
     @GetMapping("/file/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) throws MalformedURLException {
         fileupload file = fileService.getFile(fileId);
@@ -154,8 +166,18 @@ public class board_controller {
         Path filePath = Paths.get(file.getFilePath());
         Resource resource = new UrlResource(filePath.toUri());
 
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new RuntimeException("파일을 읽을 수 없습니다: " + file.getOriginalFilename());
+        }
+
+        // 파일명에 한글이 포함된 경우 인코딩 처리
+        String encodedFilename = URLEncoder.encode(file.getOriginalFilename(), StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+
+        // Content-Type을 application/octet-stream으로 설정하여 무조건 다운로드 되도록 함
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getOriginalFilename() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)
                 .body(resource);
     }
 }

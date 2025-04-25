@@ -13,7 +13,7 @@
             <h3>게시글 수정</h3>
         </div>
         <div class="card-body">
-            <form th:action="@{'/boards/' + ${board.id}}" th:object="${board}" method="post">
+            <form th:action="@{'/boards/' + ${board.id}}" th:object="${board}" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">제목</label>
                     <input type="text" class="form-control" id="title" th:field="*{title}" required>
@@ -22,6 +22,34 @@
                     <label for="content" class="form-label">내용</label>
                     <textarea class="form-control" id="content" th:field="*{content}" rows="10" required></textarea>
                 </div>
+
+                <!-- 기존 첨부 파일 목록 -->
+                <div class="mb-3" th:if="${files != null && !files.isEmpty()}">
+                    <h5>기존 첨부 파일</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item" th:each="file : ${files}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a th:href="@{'/boards/file/' + ${file.id}}" th:text="${file.originalFilename}">파일명</a>
+                                <span class="badge bg-secondary" th:text="${#numbers.formatDecimal(file.fileSize / 1024, 0, 1)} + ' KB'">파일크기</span>
+                            </div>
+                        </li>
+                    </ul>
+                    <!-- 기존 파일 삭제 옵션 -->
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="deleteExistingFiles" name="deleteExistingFiles">
+                        <label class="form-check-label" for="deleteExistingFiles">
+                            기존 파일 삭제 후 교체
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 새 파일 업로드 -->
+                <div class="mb-3">
+                    <label for="newFiles" class="form-label">새 파일 업로드</label>
+                    <input class="form-control" type="file" id="newFiles" name="uploadFiles" multiple>
+                    <div class="form-text">여러 파일을 선택하려면 Ctrl 키를 누른 상태에서 선택하세요.</div>
+                </div>
+
                 <div class="d-flex justify-content-between">
                     <a th:href="@{'/boards/' + ${board.id}}" class="btn btn-secondary">취소</a>
                     <button type="submit" class="btn btn-primary">수정</button>
