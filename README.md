@@ -86,7 +86,7 @@ Spring Boot 3.4.4와 MySQL 8.0을 활용한 게시판 웹 애플리케이션입�
 
 1. 재 빌드
 ```bash
-   gradlew clean build -x test
+   ./gradlew clean build -x test
 ```
 2. Docker-Compose 종료
 ```bash
@@ -105,7 +105,7 @@ Spring Boot 3.4.4와 MySQL 8.0을 활용한 게시판 웹 애플리케이션입�
   docker ps -> 컨테이너 ID 조회
 ```
 ```bash
-   docker exec -it [컨테이너 ID] /bin bash
+   docker exec -it [컨테이너 ID] /bin/bash
 ```
 ```bash
    cd upload
@@ -121,7 +121,7 @@ Spring Boot 3.4.4와 MySQL 8.0을 활용한 게시판 웹 애플리케이션입�
    SHOW tables;
    SELECT * FROM users;
 ```
-``
+
 ## 프로젝트 구조
 
 ```
