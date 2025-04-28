@@ -42,8 +42,8 @@ public class board_service {
     public void updateBoard(Long id, board boardRequest, user user) {
         board board = getBoard(id); // 기존에 있는 게시글 조회
 
-        // 작성자 확인 (인가 검사)
-        if (!board.getUser().getId().equals(user.getId())) {
+        // 작성자 확인 또는 관리자 권한 확인 (인가 검사)
+        if (!board.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
             throw new RuntimeException("게시글 수정 권한이 없습니다.");
         }
 
@@ -59,8 +59,8 @@ public class board_service {
     public void deleteBoard(Long id, user user) {
         board board = getBoard(id); //게시글 조회
 
-        // 작성자 확인 (인가 검사)
-        if (!board.getUser().getId().equals(user.getId())) {
+        // 작성자 확인 또는 관리자 권한 확인 (인가 검사)
+        if (!board.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
             throw new RuntimeException("게시글 삭제 권한이 없습니다.");
         }
 

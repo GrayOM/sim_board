@@ -14,6 +14,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")  // 'user' mysql 명령어 이므로 table name 은 users 로 설정
 public class user {
 
+    // 사용자 역할 상수 정의
+    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_ADMIN = "ROLE_ADMIN";
+
     @Id //primary key 지정
     @GeneratedValue(strategy = GenerationType.IDENTITY) //기본키 자동 생성 , 1씩 증가
     private Long id; // 사용자 고유 번호

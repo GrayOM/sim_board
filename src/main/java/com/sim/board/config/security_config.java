@@ -24,6 +24,8 @@ public class security_config {
                         .requestMatchers("/boards/**").permitAll() // 모든 게시판 목록은 따로 인가없이 접근 허용된다.
                         .requestMatchers("/boards/{id}").permitAll() // 모든 게시판 상세내용은 따로 인가없이 접근 허용
                         .requestMatchers("/board/file/**").permitAll() // 파일 다운로드는 모두가 받을수있음
+                        // 관리자 전용 경로 설정 (필요시 추가)
+                        .requestMatchers("/admin/**").hasRole("ADMIN") // '/admin'으로 시작하는 경로는 ADMIN 권한 필요
                         .anyRequest().authenticated()  // 위에 설정을 제외한 모든 요청은 부여받은 인가나 관리자 권한 인증이 필요함
                 )
                 .formLogin(login -> login

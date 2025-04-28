@@ -42,8 +42,8 @@ public class comment_service {
         comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
 
-        // 작성자 확인
-        if (!comment.getUser().getId().equals(user.getId())) {
+        // 작성자 확인 또는 관리자 권한 확인
+        if (!comment.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
             throw new RuntimeException("댓글 수정 권한이 없습니다.");
         }
 
@@ -58,8 +58,8 @@ public class comment_service {
         comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
 
-        // 작성자 확인
-        if (!comment.getUser().getId().equals(user.getId())) {
+        // 작성자 확인 또는 관리자 권한 확인
+        if (!comment.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
             throw new RuntimeException("댓글 삭제 권한이 없습니다.");
         }
 

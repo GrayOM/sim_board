@@ -32,7 +32,19 @@ public class user_service {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // 기본 권한 설정
-        user.setRole("ROLE_USER");
+        user.setRole(com.sim.board.domain.user.ROLE_USER);
+
+        return userRepository.save(user);
+    }
+
+    // 관리자 계정 생성 (초기 데이터용)
+    @Transactional
+    public user registerAdmin(user user) {
+        // 비밀번호 암호화
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // 관리자 권한 설정
+        user.setRole(com.sim.board.domain.user.ROLE_ADMIN);
 
         return userRepository.save(user);
     }
@@ -42,5 +54,11 @@ public class user_service {
     public user getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+
+    // 사용자명으로 존재 여부 확인
+    @Transactional(readOnly = true)
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 }
