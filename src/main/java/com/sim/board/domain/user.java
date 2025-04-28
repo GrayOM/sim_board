@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 public class user {
 
     @Id //primary key 지정
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //id 는 1씩 증가
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //기본키 자동 생성 , 1씩 증가
+    private Long id; // 사용자 고유 번호
 
     @Column(nullable = false, unique = true) //not null 중복 허용 x
     private String username;  // 사용자 로그인 ID

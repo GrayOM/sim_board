@@ -13,18 +13,18 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between">
             <div>
                 <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-                    <h2>게시판 애플리케이션</h2>
+                    <h2>게시판</h2>
                 </a>
             </div>
             <div class="text-end">
-                <a th:href="@{/boards}" class="btn btn-outline-light me-2">게시판</a>
-                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-outline-light me-2">로그인</a>
-                <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="btn btn-warning">회원가입</a>
+                <a th:href="@{/boards}" class="btn btn-outline-light me-2">HOME</a>
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-outline-light me-2">Login</a>
+                <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="btn btn-warning">register</a>
                 <div sec:authorize="isAuthenticated()" class="d-inline-block">
-                    <span class="me-2" sec:authentication="name">사용자</span>
                     <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-outline-light">로그아웃</button>
+                        <button type="submit" class="btn btn-outline-light">Logout</button>
                     </form>
+                    <span class="me-2" sec:authentication="name">사용자</span>
                 </div>
             </div>
         </div>
