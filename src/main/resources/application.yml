@@ -33,6 +33,16 @@ spring:
 file:
   upload-dir: /app/uploads  # Docker 컨테이너 내 업로드 경로
 
+# Swagger UI 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-request-duration: true
+    tags-sorter: alpha
+    operations-sorter: alpha
 # 로그 레벨 설정
 logging:
   level:
