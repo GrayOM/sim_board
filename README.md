@@ -57,7 +57,7 @@ Spring Boot 3.4.4와 MySQL 8.0을 활용한 게시판 웹 애플리케이션입�
    cd sim_board
    ```
 
-2. IDE Terminal -> Gradle로 빌드 (Linux/Mac)
+2. IDE Terminal -> Gradle로 빌드
    ```bash
    ./gradlew clean build -x test
    ```
