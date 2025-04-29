@@ -7,6 +7,24 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 댓글 수정 -->
+    <script>
+        function toggleEditComment(commentId) {
+            const contentElement = document.getElementById('comment-content-' + commentId);
+            const editElement = document.getElementById('comment-edit-' + commentId);
+
+            if (contentElement.style.display === 'none') {
+                // 수정 폼 닫기
+                contentElement.style.display = 'block';
+                editElement.style.display = 'none';
+            } else {
+                // 수정 폼 열기
+                contentElement.style.display = 'none';
+                editElement.style.display = 'block';
+            }
+        }
+    </script>
 </footer>
 </body>
 </html>

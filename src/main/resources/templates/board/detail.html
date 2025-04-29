@@ -90,7 +90,7 @@
                     </div>
                     <div sec:authorize="isAuthenticated()">
                         <th:block th:if="${comment.user.username == #authentication.principal.username || #authorization.expression('hasRole(''ADMIN'')')}">
-                            <a href="#" data-bs-toggle="modal" th:data-bs-target="'#editCommentModal' + ${comment.id}" class="btn btn-sm btn-outline-primary me-1">
+                            <a href="#" th:onclick="'toggleEditComment(' + ${comment.id} + ');return false;'" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-pen"></i>
                             </a>
                             <a th:href="@{'/comments/' + ${comment.id} + '/delete?boardId=' + ${board.id}}" class="btn btn-sm btn-outline-danger"
@@ -100,35 +100,33 @@
                         </th:block>
                     </div>
                 </div>
-                <p class="mt-2" th:text="${comment.content}">댓글 내용</p>
-                <hr>
 
-                <!-- 댓글 수정 모달 -->
-                <div class="modal fade" th:id="'editCommentModal' + ${comment.id}" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editCommentModalLabel">
-                                    <i class="fas fa-edit me-1"></i> 댓글 수정
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form th:action="@{'/comments/' + ${comment.id}}" method="post">
-                                    <input type="hidden" name="boardId" th:value="${board.id}">
-                                    <div class="mb-3">
-                                        <label>
-                                            <textarea name="content" class="form-control" rows="3" required th:text="${comment.content}"></textarea>
-                                        </label>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i> 수정
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                <!-- 일반 댓글 표시 영역 -->
+                <div th:id="'comment-content-' + ${comment.id}" class="mt-2">
+                    <p th:text="${comment.content}">댓글 내용</p>
                 </div>
+
+                <!-- 수정 폼 (기본적으로 숨김) -->
+                <div th:id="'comment-edit-' + ${comment.id}" style="display: none;" class="mt-2">
+                    <form th:action="@{'/comments/' + ${comment.id}}" method="post">
+                        <input type="hidden" name="boardId" th:value="${board.id}">
+                        <div class="mb-3">
+                            <label>
+                                <textarea name="content" class="form-control" rows="3" required th:text="${comment.content}"></textarea>
+                            </label>
+                        </div>
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-primary btn-sm me-2">
+                                <i class="fas fa-save me-1"></i> 저장
+                            </button>
+                            <button type="button" th:onclick="'toggleEditComment(' + ${comment.id} + ')'" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-times me-1"></i> 취소
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <hr>
             </div>
 
             <!-- 댓글 작성 폼 - 로그인한 사용자만 표시 -->
