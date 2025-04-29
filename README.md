@@ -62,11 +62,6 @@ Spring Boot 3.4.4와 MySQL 8.0을 활용한 게시판 웹 애플리케이션입�
    ./gradlew clean build -x test
    ```
    
-   Gradle로 빌드 (Windows)
-   ```bash
-   gradlew.bat clean build
-   ```
-
 3. Docker Compose로 실행
    ```bash
    docker-compose up --build
