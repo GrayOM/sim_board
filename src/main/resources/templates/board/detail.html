@@ -20,6 +20,11 @@
                     <i class="far fa-clock me-1"></i>
                     <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm', 'Asia/Seoul')}">작성일</span>
                 </span>
+                <!-- 수정 상태 표시 추가 -->
+                <span class="ms-3" th:if="${board.isModified}">
+                <i class="fas fa-edit me-1"></i>
+                <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd HH:mm', 'Asia/Seoul')} + ' 수정됨'">수정일</span>
+        </span>
             </div>
         </div>
         <div class="card-body">

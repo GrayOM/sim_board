@@ -97,23 +97,21 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
         return "board/detail"; //detail.html 반환
     }
 
-    // 게시글 수정 페이지 [GET]
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        board board = boardService.getBoard(id); //URL 에서 추출한 ID로 게시글 조회함
-        user user = userService.getUserByUsername(userDetails.getUsername()); // 현재 로그인한 사용자 정보 조회
+        board board = boardService.getBoard(id);
+        user user = userService.getUserByUsername(userDetails.getUsername());
 
-        // 작성자 본인만 수정할 수 있음
-        if (!board.getUser().getId().equals(user.getId())) {
-            return "redirect:/boards/" + id; //만약 작성자 본인이 아니라면 상세페이지로 이동
+        // 작성자 본인 또는 관리자만 수정할 수 있음
+        if (!board.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
+            return "redirect:/boards/" + id;
         }
 
-        // 파일 목록 가져오기
         List<fileupload> files = fileService.getFilesByBoardId(id);
 
         model.addAttribute("board", board);
-        model.addAttribute("files", files);  // 파일 목록을 모델에 추가
-        return "board/edit"; // 수정 페이지 반환
+        model.addAttribute("files", files);
+        return "board/edit";
     }
 
     // 게시글 수정

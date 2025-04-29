@@ -39,6 +39,9 @@ public class board {
     @UpdateTimestamp // 수정 시 현재 시간 설정
     private LocalDateTime updatedAt;  // 수정 시간
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean isModified = false;  // 수정 여부 표시
+
     // (1 게시글 -> n 댓글) , 게시글 삭제 시 댓글 함께 삭제
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<comment> comments = new ArrayList<>();  // 댓글 목록

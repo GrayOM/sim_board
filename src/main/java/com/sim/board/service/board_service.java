@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class board_service {
@@ -50,6 +52,8 @@ public class board_service {
         //제목과 내용 업데이트
         board.setTitle(boardRequest.getTitle());
         board.setContent(boardRequest.getContent());
+        board.setIsModified(true);
+        board.setUpdatedAt(LocalDateTime.now()); // 수정 시간 갱신
 
         boardRepository.save(board); //변경 내용 저장
     }
