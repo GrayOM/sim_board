@@ -89,22 +89,40 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
         return "redirect:/boards";
     }
 
-    // 1. detail 메서드 수정 - OAuth2 사용자를 위한 디버깅 로그 간소화 및 게시글 데이터만 처리
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, Model model, Authentication authentication) {
         try {
             System.out.println("게시글 상세 조회 - 시작 (ID: " + id + ")");
 
-            // 실제 게시글 상세 데이터만 조회
+            // 게시글 상세 데이터 조회
             board board = boardService.getBoard(id);
             List<comment> comments = commentService.getCommentsByBoardId(id);
             List<fileupload> files = fileService.getFilesByBoardId(id);
+
+            // 현재 로그인한 사용자 정보 조회
+            user currentUser = null;
+            boolean isAdmin = false;
+
+            if (authentication != null && authentication.isAuthenticated() &&
+                    !authentication.getName().equals("anonymousUser")) {
+                String username = authService.extractUsername(authentication);
+                if (username != null) {
+                    try {
+                        currentUser = userService.getUserByUsername(username);
+                        isAdmin = currentUser.getRole().equals(user.ROLE_ADMIN);
+                    } catch (Exception e) {
+                        System.err.println("현재 사용자 정보 조회 실패: " + e.getMessage());
+                    }
+                }
+            }
 
             // 모델에 데이터 추가
             model.addAttribute("board", board);
             model.addAttribute("comments", comments);
             model.addAttribute("newComment", new comment());
             model.addAttribute("files", files);
+            model.addAttribute("currentUser", currentUser); // 현재 사용자 정보
+            model.addAttribute("isAdmin", isAdmin); // 관리자 여부
 
             System.out.println("게시글 상세 조회 - 성공");
             return "board/detail";
@@ -115,7 +133,6 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
             return "redirect:/boards";
         }
     }
-
     // 2. editForm 메서드 수정 - OAuth2 사용자 처리 추가
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model, Authentication authentication) {
@@ -146,7 +163,7 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
                          @ModelAttribute board board,
                          @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
                          @RequestParam(name = "deleteExistingFiles", required = false) Boolean deleteExistingFiles,
-                         Authentication authentication) throws IOException {
+                         Authentication authentication) {
 
         // 인증 정보에서 사용자명 추출
         String username = authService.extractUsername(authentication);

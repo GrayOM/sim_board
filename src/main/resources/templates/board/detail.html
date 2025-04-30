@@ -48,10 +48,9 @@
                 </ul>
             </div>
 
-            <!-- 게시글 작성자 또는 관리자만 볼 수 있는 수정/삭제 버튼 - 핵심 문제 해결 부분 -->
+            <!-- 게시글 작성자 또는 관리자만 볼 수 있는 수정/삭제 버튼 -->
             <div class="mb-4 d-flex" sec:authorize="isAuthenticated()">
-                <!-- OAuth2 사용자와 일반 사용자를 모두 처리할 수 있도록 조건 수정 -->
-                <th:block th:if="${board.user != null && ((#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails) && board.user.username == #authentication.principal.username) || (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) && board.user.email == #authentication.principal.attributes.email) || (#authorization.expression('hasRole(''ADMIN'')')))}" >
+                <th:block th:if="${currentUser != null && (isAdmin || (board.user != null && board.user.id == currentUser.id))}">
                     <a th:href="@{'/boards/' + ${board.id} + '/edit'}" class="btn btn-primary me-2">
                         <i class="fas fa-edit me-1"></i> 수정
                     </a>
@@ -76,8 +75,7 @@
                                th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm', 'Asia/Seoul')}">작성일</small>
                     </div>
                     <div sec:authorize="isAuthenticated()">
-                        <!-- OAuth2 사용자와 일반 사용자를 모두 처리할 수 있도록 조건 수정 -->
-                        <th:block th:if="${comment.user != null && ((#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails) && comment.user.username == #authentication.principal.username) || (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) && comment.user.email == #authentication.principal.attributes.email) || (#authorization.expression('hasRole(''ADMIN'')')))}" >
+                        <th:block th:if="${currentUser != null && (isAdmin || (comment.user != null && comment.user.id == currentUser.id))}">
                             <a href="#" th:onclick="'toggleEditComment(' + ${comment.id} + ');return false;'" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-pen"></i>
                             </a>
