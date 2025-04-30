@@ -1,5 +1,6 @@
 package com.sim.board.config.oauth.userinfo;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class KakaoUserInfo extends OAuth2UserInfo {
@@ -15,16 +16,16 @@ public class KakaoUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getName() {
-        Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
+        Map<String, Object> properties = getProperties();
         if (properties == null) {
-            return "Unknown";
+            return "Kakao User";
         }
-        return properties.getOrDefault("nickname", "Unknown").toString();
+        return properties.getOrDefault("nickname", "Kakao User").toString();
     }
 
     @Override
     public String getEmail() {
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        Map<String, Object> kakaoAccount = getKakaoAccount();
         if (kakaoAccount == null) {
             return "";
         }
@@ -33,7 +34,7 @@ public class KakaoUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getImageUrl() {
-        Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
+        Map<String, Object> properties = getProperties();
         if (properties == null) {
             return "";
         }
@@ -43,5 +44,23 @@ public class KakaoUserInfo extends OAuth2UserInfo {
     @Override
     public String getProvider() {
         return "kakao";
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getProperties() {
+        try {
+            return (Map<String, Object>) attributes.get("properties");
+        } catch (ClassCastException e) {
+            return new HashMap<>();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getKakaoAccount() {
+        try {
+            return (Map<String, Object>) attributes.get("kakao_account");
+        } catch (ClassCastException e) {
+            return new HashMap<>();
+        }
     }
 }

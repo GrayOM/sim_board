@@ -104,4 +104,10 @@ public class user_service {
             return userRepository.save(newUser);
         }
     }
+
+    // 사용자 정보 업데이트
+    @Transactional
+    public user updateUser(user user) {
+        return userRepository.save(user);
+    }
 }

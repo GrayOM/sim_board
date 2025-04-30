@@ -1,5 +1,6 @@
 package com.sim.board.config.oauth.userinfo;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class NaverUserInfo extends OAuth2UserInfo {
@@ -10,7 +11,7 @@ public class NaverUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getId() {
-        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        Map<String, Object> response = getResponse();
         if (response == null) {
             return null;
         }
@@ -19,16 +20,16 @@ public class NaverUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getName() {
-        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        Map<String, Object> response = getResponse();
         if (response == null) {
-            return "Unknown";
+            return "Naver User";
         }
-        return response.getOrDefault("name", "Unknown").toString();
+        return response.getOrDefault("name", "Naver User").toString();
     }
 
     @Override
     public String getEmail() {
-        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        Map<String, Object> response = getResponse();
         if (response == null) {
             return "";
         }
@@ -37,7 +38,7 @@ public class NaverUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getImageUrl() {
-        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        Map<String, Object> response = getResponse();
         if (response == null) {
             return "";
         }
@@ -47,5 +48,14 @@ public class NaverUserInfo extends OAuth2UserInfo {
     @Override
     public String getProvider() {
         return "naver";
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getResponse() {
+        try {
+            return (Map<String, Object>) attributes.get("response");
+        } catch (ClassCastException e) {
+            return new HashMap<>();
+        }
     }
 }

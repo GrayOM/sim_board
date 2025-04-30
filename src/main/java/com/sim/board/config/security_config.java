@@ -55,6 +55,7 @@ public class security_config {
                 )
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
+                        .defaultSuccessUrl("/boards?login=true", true)
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)

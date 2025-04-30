@@ -3,14 +3,22 @@ version: '3' #Docker compose 파일 버전
 services:
   app: #app 서비스 정의
     build: . #현재 dockerfile 을 사용함
+    env_file:
+      - ./.env
     ports:
       - "8080:8080" # host:container port
     depends_on:
       - db #DB 서비스 ON
-    environment: #jdbc:mysql:// mysql 연결 , SSL 연결 사용 x , mysql 서버에서 클라이언트 공개 키 검색 , 서버시간 UTC 기준
+    environment: #jdbc:mysql:// mysql 연결 , SSL 연결 사용 x , mysql 서버에서 클라이언트 공개 키 검색 , 서버시간 서울 기준
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/board_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
     volumes:
       - ./uploads:/app/uploads  # 호스트 upload 디렉토리를 app/uploads 에 마운트
 

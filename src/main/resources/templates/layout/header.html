@@ -68,17 +68,17 @@
                         <span sec:authorize="hasRole('ADMIN')" class="badge bg-danger ms-1">관리자</span>
 
                         <!-- 소셜 로그인 뱃지 - 파라미터 및 세션값 확인 -->
-                        <th:block th:if="${param.provider != null and param.provider[0] == 'google' or session.auth_provider == 'google'}">
+                        <th:block th:if="${session.auth_provider == 'google' || param.provider != null and param.provider[0] == 'google'}">
                             <span class="social-badge social-badge-google">
                                 <i class="fab fa-google me-1"></i> Google
                             </span>
                         </th:block>
-                        <th:block th:if="${param.provider != null and param.provider[0] == 'kakao' or session.auth_provider == 'kakao'}">
+                        <th:block th:if="${session.auth_provider == 'kakao' || param.provider != null and param.provider[0] == 'kakao'}">
                             <span class="social-badge social-badge-kakao">
                                 <i class="fas fa-comment me-1"></i> Kakao
                             </span>
                         </th:block>
-                        <th:block th:if="${param.provider != null and param.provider[0] == 'naver' or session.auth_provider == 'naver'}">
+                        <th:block th:if="${session.auth_provider == 'naver' || param.provider != null and param.provider[0] == 'naver'}">
                             <span class="social-badge social-badge-naver">
                                 <i class="fas fa-n me-1"></i> Naver
                             </span>
