@@ -21,6 +21,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final AuthenticationSessionService authSessionService;
 
+    // user_service 의존성 제거 - 순환 참조 방지
+    // private final user_service userService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
@@ -43,6 +46,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             String email = userInfo.getEmail();
             if (email != null && !email.isEmpty()) {
                 session.setAttribute("auth_username", email);
+
+                // 사용자 정보 확인 로직 간소화 - 순환 참조 방지
+                System.out.println("OAuth2 사용자 이메일: " + email);
             } else {
                 // 이메일이 없는 경우 고유 ID 기반 사용자명 생성
                 String username = registrationId + "-user-" + userInfo.getId();

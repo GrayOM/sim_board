@@ -54,8 +54,26 @@ public class user_service {
     // 사용자 정보 조회 (username으로)
     @Transactional(readOnly = true)
     public user getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        // 먼저 username으로 조회 시도
+        Optional<user> userByUsername = userRepository.findByUsername(username);
+        if (userByUsername.isPresent()) {
+            return userByUsername.get();
+        }
+
+        // username으로 찾지 못한 경우 이메일로 조회 시도 (소셜 로그인 사용자)
+        Optional<user> userByEmail = userRepository.findByEmail(username);
+        if (userByEmail.isPresent()) {
+            return userByEmail.get();
+        }
+
+        // 디버깅 로그 추가
+        System.out.println("사용자를 찾을 수 없음 - 검색 키워드: " + username);
+        System.out.println("DB 내 모든 사용자 목록:");
+        userRepository.findAll().forEach(u -> System.out.println("ID: " + u.getId() + ", Username: " + u.getUsername() +
+                ", Email: " + u.getEmail() + ", Role: " + u.getRole() +
+                ", Provider: " + u.getProvider()));
+
+        throw new RuntimeException("사용자를 찾을 수 없습니다: " + username);
     }
 
     // 사용자 정보 조회 (이메일로)

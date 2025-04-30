@@ -37,7 +37,7 @@ public class api_board_controller {
     @GetMapping
     public ResponseEntity<Page<board>> getBoards(
             @Parameter(description = "페이지 정보 (페이지 번호, 크기, 정렬)")
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault() Pageable pageable) {
         Page<board> boards = boardService.getBoardList(pageable);
         return ResponseEntity.ok(boards);
     }

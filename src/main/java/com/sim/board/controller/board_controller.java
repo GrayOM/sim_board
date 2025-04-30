@@ -4,6 +4,7 @@ import com.sim.board.domain.board;
 import com.sim.board.domain.comment;
 import com.sim.board.domain.fileupload;
 import com.sim.board.domain.user;
+import com.sim.board.service.auth_service;
 import com.sim.board.service.board_service;
 import com.sim.board.service.comment_service;
 import com.sim.board.service.file_upload_service;
@@ -18,8 +19,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -42,12 +46,13 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
     private final comment_service commentService;
     private final file_upload_service fileService;
     private final user_service userService;
+    private final auth_service authService;
 
     // 게시글 목록 조회 [GET]
     @GetMapping
     public String list(Model model,
                        @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) { // 페이징 기본값 ID 내림 차순 정렬
-            //페이징 처리된 게시글 목록 조회 (page 조회)
+        //페이징 처리된 게시글 목록 조회 (page 조회)
         Page<board> boards = boardService.getBoardList(pageable);
         model.addAttribute("boards", boards); //boards 데이터 추가시킴
         return "board/list"; // list.html 반환
@@ -64,9 +69,12 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
     @PostMapping
     public String write(@ModelAttribute board board, // 데이터 바인딩
                         @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles, // 첨부 파일 저장 [선택]
-                        @AuthenticationPrincipal UserDetails userDetails) throws IOException { //현재 로그인된 사용자 저장
+                        Authentication authentication) throws IOException { //현재 로그인된 사용자 저장
 
-        user user = userService.getUserByUsername(userDetails.getUsername()); //현재 로그인 된 사용자 정보를 조회함
+        // 인증 정보에서 사용자명 추출
+        String username = authService.extractUsername(authentication);
+        // 사용자 정보 조회
+        user user = userService.getUserByUsername(username);
         board savedBoard = boardService.createBoard(board, user); //게시글 생성
 
         //사용자가 파일을 업로드 했을때
@@ -84,23 +92,95 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
     // 게시글 상세 조회 [GET /boards/{id}]
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        board board = boardService.getBoard(id); //URL에서 추출한 ID로 게시글 조회
-        List<comment> comments = commentService.getCommentsByBoardId(id); //선택한 게시글의 댓글 목록 조회
-        List<fileupload> files = fileService.getFilesByBoardId(id); //선택한 게시글의 첨부 파일 목록 조회
+        try {
+            // 디버깅 로그 추가
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            System.out.println("게시글 상세 조회 - 시작");
+            System.out.println("게시글 상세 조회 - ID: " + id);
 
-        // 모델에 데이터 추가
-        model.addAttribute("board", board);
-        model.addAttribute("comments", comments);
-        model.addAttribute("newComment", new comment()); //새로운 댓글
-        model.addAttribute("files", files);
+            if (auth != null) {
+                System.out.println("게시글 상세 조회 - Authentication 타입: " + auth.getClass().getName());
+                System.out.println("게시글 상세 조회 - Principal 타입: " + (auth.getPrincipal() != null ? auth.getPrincipal().getClass().getName() : "null"));
+                System.out.println("게시글 상세 조회 - 인증된 사용자: " + auth.getName());
+                System.out.println("게시글 상세 조회 - 권한: " + auth.getAuthorities());
 
-        return "board/detail"; //detail.html 반환
+                // OAuth2 사용자인 경우 추가 정보 로깅
+                if (auth instanceof OAuth2AuthenticationToken) {
+                    OAuth2User oAuth2User = (OAuth2User) auth.getPrincipal();
+                    String registrationId = ((OAuth2AuthenticationToken) auth).getAuthorizedClientRegistrationId();
+                    System.out.println("게시글 상세 조회 - OAuth2 제공자: " + registrationId);
+
+                    if ("google".equals(registrationId)) {
+                        System.out.println("게시글 상세 조회 - Google 사용자 이메일: " + oAuth2User.getAttribute("email"));
+                    } else if ("kakao".equals(registrationId)) {
+                        Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
+                        if (kakaoAccount != null && kakaoAccount.containsKey("email")) {
+                            System.out.println("게시글 상세 조회 - Kakao 사용자 이메일: " + kakaoAccount.get("email"));
+                        }
+                    } else if ("naver".equals(registrationId)) {
+                        Map<String, Object> response = oAuth2User.getAttribute("response");
+                        if (response != null && response.containsKey("email")) {
+                            System.out.println("게시글 상세 조회 - Naver 사용자 이메일: " + response.get("email"));
+                        }
+                    }
+                }
+            }
+
+            // 실제 게시글 상세 데이터 조회 - try/catch로 각 단계별 오류 확인
+            board board;
+            try {
+                board = boardService.getBoard(id);
+                System.out.println("게시글 상세 조회 - 게시글 정보: " + board.getId() + ", " + board.getTitle());
+            } catch (Exception e) {
+                System.err.println("게시글 정보 조회 중 오류: " + e.getMessage());
+                throw e;
+            }
+
+            List<comment> comments;
+            try {
+                comments = commentService.getCommentsByBoardId(id);
+                System.out.println("게시글 상세 조회 - 댓글 수: " + comments.size());
+            } catch (Exception e) {
+                System.err.println("댓글 목록 조회 중 오류: " + e.getMessage());
+                throw e;
+            }
+
+            List<fileupload> files;
+            try {
+                files = fileService.getFilesByBoardId(id);
+                System.out.println("게시글 상세 조회 - 첨부 파일 수: " + files.size());
+            } catch (Exception e) {
+                System.err.println("첨부 파일 목록 조회 중 오류: " + e.getMessage());
+                throw e;
+            }
+
+            // 모델에 데이터 추가
+            model.addAttribute("board", board);
+            model.addAttribute("comments", comments);
+            model.addAttribute("newComment", new comment());
+            model.addAttribute("files", files);
+
+            System.out.println("게시글 상세 조회 - 성공");
+            return "board/detail";
+
+        } catch (Exception e) {
+            // 오류 발생 시 자세한 로그 출력
+            System.err.println("게시글 상세 조회 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+
+            // 오류 정보를 모델에 추가하고 게시판 목록으로 리다이렉트
+            model.addAttribute("error", "게시글을 불러오는 중 오류가 발생했습니다: " + e.getMessage());
+            return "redirect:/boards";
+        }
     }
 
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String editForm(@PathVariable Long id, Model model, Authentication authentication) {
         board board = boardService.getBoard(id);
-        user user = userService.getUserByUsername(userDetails.getUsername());
+
+        // 인증 정보에서 사용자명 추출
+        String username = authService.extractUsername(authentication);
+        user user = userService.getUserByUsername(username);
 
         // 작성자 본인 또는 관리자만 수정할 수 있음
         if (!board.getUser().getId().equals(user.getId()) && !user.getRole().equals(com.sim.board.domain.user.ROLE_ADMIN)) {
@@ -120,9 +200,11 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
                          @ModelAttribute board board, // 수정할 게시글 데이터 폼에서 매핑
                          @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles, //새로 업로드할 파일 목록 [선택]
                          @RequestParam(name = "deleteExistingFiles", required = false) Boolean deleteExistingFiles, //기존 파일을 삭제할지 여부 [선택]
-                         @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+                         Authentication authentication) throws IOException {
 
-        user user = userService.getUserByUsername(userDetails.getUsername()); //현재 로그인한 사용자 정보를 조회
+        // 인증 정보에서 사용자명 추출
+        String username = authService.extractUsername(authentication);
+        user user = userService.getUserByUsername(username);
         boardService.updateBoard(id, board, user); // 게시글 수정
 
         // 기존 파일 삭제 옵션이 선택된 경우
@@ -149,8 +231,10 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
 
     // 게시글 삭제 처리 [GET]
     @GetMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) { //URL 에서 id 추출 , 현재 로그인한 사용자
-        user user = userService.getUserByUsername(userDetails.getUsername()); //현재 로그인한 사용자 정보 조회
+    public String delete(@PathVariable Long id, Authentication authentication) { //URL 에서 id 추출 , 현재 로그인한 사용자
+        // 인증 정보에서 사용자명 추출
+        String username = authService.extractUsername(authentication);
+        user user = userService.getUserByUsername(username);
         boardService.deleteBoard(id, user); //게시글 삭제 board_service
 
         return "redirect:/boards";

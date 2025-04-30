@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -26,6 +27,9 @@ import java.util.Optional;
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final user_repository userRepository;
+
+    // PasswordEncoder 의존성 제거하고 직접 BCryptPasswordEncoder 생성
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -76,7 +80,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 userEntity.setProviderId(oAuth2UserInfo.getId());
                 userEntity.setProfileImageUrl(oAuth2UserInfo.getImageUrl());
                 userEntity.setName(oAuth2UserInfo.getName());
-                userRepository.save(userEntity); // 값을 할당하지 않고 직접 메소드만 호출
+
+                // 역할이 없는 경우 ROLE_USER 역할 부여
+                if (userEntity.getRole() == null || userEntity.getRole().isEmpty()) {
+                    userEntity.setRole(user.ROLE_USER);
+                }
+
+                userRepository.save(userEntity);
             }
         } else {
             // 새 사용자라면 저장
@@ -84,7 +94,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .username(email) // 이메일을 사용자명으로 사용
                     .email(email)
                     .name(name)
-                    .password("oauth2user") // 소셜 로그인 사용자는 실제 사용하지 않는 비밀번호
+                    .password(passwordEncoder.encode("oauth2user")) // 소셜 로그인 사용자는 실제 사용하지 않는 비밀번호
                     .provider(oAuth2UserInfo.getProvider())
                     .providerId(oAuth2UserInfo.getId())
                     .profileImageUrl(oAuth2UserInfo.getImageUrl())
@@ -94,7 +104,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             userEntity = userRepository.save(userEntity); // 새 사용자의 경우 저장된 엔티티가 필요함
         }
 
-        // OAuth2User 생성 및 반환
+        // 사용자 역할 확인 및 디버깅 로그 추가
+        System.out.println("User role: " + userEntity.getRole());
+
+        // OAuth2User 생성 및 반환 (올바른 권한으로 설정)
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(userEntity.getRole())),
                 attributes,
