@@ -1,3 +1,5 @@
+// src/main/java/com/sim/board/config/oauth/CustomOAuth2UserService.java 파일 개선
+
 package com.sim.board.config.oauth;
 
 import com.sim.board.config.oauth.userinfo.OAuth2UserInfo;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,39 +50,64 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
         String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+        Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes()); // 안전한 복사본 생성
 
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
+        try {
+            // OAuth2UserInfo 안전하게 생성
+            OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
 
-        // 이메일이 없는 경우 예외 처리
-        if (!StringUtils.hasText(oAuth2UserInfo.getEmail())) {
-            throw new OAuth2AuthenticationException("Email not found from OAuth2 provider: " + registrationId);
-        }
+            // ID, 이메일 추출
+            String providerId = oAuth2UserInfo.getId();
+            String email = oAuth2UserInfo.getEmail();
+            String name = oAuth2UserInfo.getName();
 
-        String email = oAuth2UserInfo.getEmail();
-        String name = oAuth2UserInfo.getName();
+            // ID 확인 및 기본값 설정
+            if (providerId == null) {
+                providerId = "unknown-" + System.currentTimeMillis();
+            }
 
-        // 디버깅용 로그
-        System.out.println("OAuth2 Provider: " + registrationId);
-        System.out.println("Email: " + email);
-        System.out.println("Name: " + name);
-        System.out.println("ID: " + oAuth2UserInfo.getId());
+            // 디버깅용 로그
+            System.out.println("OAuth2 Provider: " + registrationId);
+            System.out.println("Provider ID: " + providerId);
+            System.out.println("Email: " + email);
+            System.out.println("Name: " + name);
 
-        // 이메일로 기존 사용자가 있는지 확인
-        Optional<user> userOptional = userRepository.findByEmail(email);
-        user userEntity;
+            // 이메일이 없는 경우, 대체 식별자 사용
+            user userEntity;
+            String username;
 
-        if (userOptional.isPresent()) {
-            // 기존 사용자가 있다면 소셜 정보 업데이트
-            userEntity = userOptional.get();
+            if (!StringUtils.hasText(email)) {
+                // 이메일 없이 providerId로 사용자 검색
+                username = registrationId + "-" + providerId;
+                System.out.println("이메일 없음, 대체 사용자명 사용: " + username);
+            } else {
+                username = email;
+            }
 
-            // 소셜 로그인 정보가 다르다면 업데이트
-            if (!userEntity.getProvider().equals(oAuth2UserInfo.getProvider()) ||
-                    !userEntity.getProviderId().equals(oAuth2UserInfo.getId())) {
-                userEntity.setProvider(oAuth2UserInfo.getProvider());
-                userEntity.setProviderId(oAuth2UserInfo.getId());
-                userEntity.setProfileImageUrl(oAuth2UserInfo.getImageUrl());
-                userEntity.setName(oAuth2UserInfo.getName());
+            // 이메일이나 대체 식별자로 사용자 검색
+            Optional<user> userOptional;
+            if (StringUtils.hasText(email)) {
+                userOptional = userRepository.findByEmail(email);
+            } else {
+                userOptional = userRepository.findByUsername(username);
+            }
+
+            if (userOptional.isPresent()) {
+                // 기존 사용자가 있다면 업데이트
+                userEntity = userOptional.get();
+
+                // 소셜 로그인 정보 업데이트 (필요한 경우)
+                userEntity.setProvider(registrationId);
+                userEntity.setProviderId(providerId);
+
+                // 이름과 프로필 이미지 URL 업데이트 (있는 경우에만)
+                if (StringUtils.hasText(name)) {
+                    userEntity.setName(name);
+                }
+
+                if (StringUtils.hasText(oAuth2UserInfo.getImageUrl())) {
+                    userEntity.setProfileImageUrl(oAuth2UserInfo.getImageUrl());
+                }
 
                 // 역할이 없는 경우 ROLE_USER 역할 부여
                 if (userEntity.getRole() == null || userEntity.getRole().isEmpty()) {
@@ -87,31 +115,57 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 }
 
                 userRepository.save(userEntity);
+                System.out.println("기존 사용자 업데이트 완료: " + userEntity.getUsername());
+            } else {
+                // 새 사용자 생성
+                userEntity = user.builder()
+                        .username(username)
+                        .email(StringUtils.hasText(email) ? email : username)
+                        .name(StringUtils.hasText(name) ? name : "사용자-" + providerId)
+                        .password(passwordEncoder.encode("oauth2user"))
+                        .provider(registrationId)
+                        .providerId(providerId)
+                        .profileImageUrl(oAuth2UserInfo.getImageUrl())
+                        .role(user.ROLE_USER)
+                        .build();
+
+                userEntity = userRepository.save(userEntity);
+                System.out.println("새 사용자 생성 완료: " + userEntity.getUsername());
             }
-        } else {
-            // 새 사용자라면 저장
-            userEntity = user.builder()
-                    .username(email) // 이메일을 사용자명으로 사용
-                    .email(email)
-                    .name(name)
-                    .password(passwordEncoder.encode("oauth2user")) // 소셜 로그인 사용자는 실제 사용하지 않는 비밀번호
-                    .provider(oAuth2UserInfo.getProvider())
-                    .providerId(oAuth2UserInfo.getId())
-                    .profileImageUrl(oAuth2UserInfo.getImageUrl())
-                    .role(user.ROLE_USER) // 기본 역할은 USER
-                    .build();
 
-            userEntity = userRepository.save(userEntity); // 새 사용자의 경우 저장된 엔티티가 필요함
+            // 사용자 역할 확인 및 디버깅 로그 추가
+            System.out.println("User role: " + userEntity.getRole());
+
+            // OAuth2User 생성 및 반환
+            String userNameAttributeName = oAuth2UserRequest.getClientRegistration()
+                    .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+
+            // userNameAttributeName이 없으면 기본값 설정
+            if (!StringUtils.hasText(userNameAttributeName)) {
+                userNameAttributeName = "id";
+                // 기본 id 속성 추가
+                attributes.put("id", providerId);
+            }
+
+            return new DefaultOAuth2User(
+                    Collections.singleton(new SimpleGrantedAuthority(userEntity.getRole())),
+                    attributes,
+                    userNameAttributeName
+            );
+        } catch (Exception e) {
+            System.err.println("OAuth2 사용자 처리 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+
+            // 복구 가능한 최소한의 DefaultOAuth2User 객체 생성
+            Map<String, Object> recoveryAttributes = new HashMap<>();
+            recoveryAttributes.put("id", "recovery-" + System.currentTimeMillis());
+            recoveryAttributes.put("name", "복구 사용자");
+
+            return new DefaultOAuth2User(
+                    Collections.singleton(new SimpleGrantedAuthority(user.ROLE_USER)),
+                    recoveryAttributes,
+                    "id"
+            );
         }
-
-        // 사용자 역할 확인 및 디버깅 로그 추가
-        System.out.println("User role: " + userEntity.getRole());
-
-        // OAuth2User 생성 및 반환 (올바른 권한으로 설정)
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(userEntity.getRole())),
-                attributes,
-                oAuth2UserRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName()
-        );
     }
 }

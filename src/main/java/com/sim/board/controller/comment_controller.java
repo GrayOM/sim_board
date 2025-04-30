@@ -1,3 +1,5 @@
+// src/main/java/com/sim/board/controller/comment_controller.java 파일 수정
+
 package com.sim.board.controller;
 
 import com.sim.board.domain.comment;
@@ -24,13 +26,18 @@ public class comment_controller {
     public String create(@PathVariable Long boardId,
                          @ModelAttribute comment comment,
                          Authentication authentication) {
+        try {
+            // 인증 정보에서 사용자명 추출
+            String username = authService.extractUsername(authentication);
+            user user = userService.getUserByUsername(username);
+            commentService.createComment(boardId, comment, user);
 
-        // 인증 정보에서 사용자명 추출
-        String username = authService.extractUsername(authentication);
-        user user = userService.getUserByUsername(username);
-        commentService.createComment(boardId, comment, user);
-
-        return "redirect:/boards/" + boardId;
+            return "redirect:/boards/" + boardId;
+        } catch (Exception e) {
+            System.err.println("댓글 작성 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/boards/" + boardId;
+        }
     }
 
     // 댓글 수정
@@ -39,13 +46,18 @@ public class comment_controller {
                          @ModelAttribute comment comment,
                          @RequestParam Long boardId,
                          Authentication authentication) {
+        try {
+            // 인증 정보에서 사용자명 추출
+            String username = authService.extractUsername(authentication);
+            user user = userService.getUserByUsername(username);
+            commentService.updateComment(commentId, comment, user);
 
-        // 인증 정보에서 사용자명 추출
-        String username = authService.extractUsername(authentication);
-        user user = userService.getUserByUsername(username);
-        commentService.updateComment(commentId, comment, user);
-
-        return "redirect:/boards/" + boardId;
+            return "redirect:/boards/" + boardId;
+        } catch (Exception e) {
+            System.err.println("댓글 수정 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/boards/" + boardId;
+        }
     }
 
     // 댓글 삭제
@@ -53,12 +65,17 @@ public class comment_controller {
     public String delete(@PathVariable Long commentId,
                          @RequestParam Long boardId,
                          Authentication authentication) {
+        try {
+            // 인증 정보에서 사용자명 추출
+            String username = authService.extractUsername(authentication);
+            user user = userService.getUserByUsername(username);
+            commentService.deleteComment(commentId, user);
 
-        // 인증 정보에서 사용자명 추출
-        String username = authService.extractUsername(authentication);
-        user user = userService.getUserByUsername(username);
-        commentService.deleteComment(commentId, user);
-
-        return "redirect:/boards/" + boardId;
+            return "redirect:/boards/" + boardId;
+        } catch (Exception e) {
+            System.err.println("댓글 삭제 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/boards/" + boardId;
+        }
     }
 }

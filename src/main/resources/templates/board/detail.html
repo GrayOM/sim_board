@@ -48,9 +48,10 @@
                 </ul>
             </div>
 
-            <!-- 게시글 작성자 또는 관리자만 볼 수 있는 수정/삭제 버튼 -->
+            <!-- 게시글 작성자 또는 관리자만 볼 수 있는 수정/삭제 버튼 - 핵심 문제 해결 부분 -->
             <div class="mb-4 d-flex" sec:authorize="isAuthenticated()">
-                <th:block th:if="${board.user.username == #authentication.principal.username || #authorization.expression('hasRole(''ADMIN'')')}">
+                <!-- OAuth2 사용자와 일반 사용자를 모두 처리할 수 있도록 조건 수정 -->
+                <th:block th:if="${board.user != null && ((#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails) && board.user.username == #authentication.principal.username) || (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) && board.user.email == #authentication.principal.attributes.email) || (#authorization.expression('hasRole(''ADMIN'')')))}" >
                     <a th:href="@{'/boards/' + ${board.id} + '/edit'}" class="btn btn-primary me-2">
                         <i class="fas fa-edit me-1"></i> 수정
                     </a>
@@ -61,35 +62,22 @@
                 </th:block>
             </div>
 
-            <a href="/boards" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i> 목록으로
-            </a>
-        </div>
-    </div>
-
-    <!-- 댓글 목록 -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4><i class="far fa-comments me-2"></i>댓글</h4>
-        </div>
-        <div class="card-body">
-            <div class="mb-4" th:if="${comments.isEmpty()}">
-                <div class="text-center py-4">
-                    <i class="far fa-comment-dots fa-2x mb-3 text-muted"></i>
-                    <p class="text-muted">등록된 댓글이 없습니다.</p>
-                </div>
-            </div>
-            <div class="comment-section" th:each="comment : ${comments}">
+            <!-- 댓글 영역도 동일한 방식으로 수정 필요 -->
+            <div class="comment-section" th:if="${comments != null}" th:each="comment : ${comments}">
                 <div class="d-flex justify-content-between">
                     <div>
                         <strong>
                             <i class="fas fa-user-circle me-1"></i>
-                            <span th:text="${comment.user.name}">작성자</span>
+                            <span th:if="${comment.user != null && comment.user.name != null}" th:text="${comment.user.name}">작성자</span>
+                            <span th:unless="${comment.user != null && comment.user.name != null}">알 수 없음</span>
                         </strong>
-                        <small class="text-muted ms-2" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm', 'Asia/Seoul')}">작성일</small>
+                        <small class="text-muted ms-2"
+                               th:if="${comment.createdAt != null}"
+                               th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm', 'Asia/Seoul')}">작성일</small>
                     </div>
                     <div sec:authorize="isAuthenticated()">
-                        <th:block th:if="${comment.user.username == #authentication.principal.username || #authorization.expression('hasRole(''ADMIN'')')}">
+                        <!-- OAuth2 사용자와 일반 사용자를 모두 처리할 수 있도록 조건 수정 -->
+                        <th:block th:if="${comment.user != null && ((#authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails) && comment.user.username == #authentication.principal.username) || (#authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User) && comment.user.email == #authentication.principal.attributes.email) || (#authorization.expression('hasRole(''ADMIN'')')))}" >
                             <a href="#" th:onclick="'toggleEditComment(' + ${comment.id} + ');return false;'" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="fas fa-pen"></i>
                             </a>

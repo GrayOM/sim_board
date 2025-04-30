@@ -92,7 +92,8 @@ springdoc:
 logging:
   level:
     org.springframework.web: INFO # Spring Web 관련 로그
-    org.hibernate: WARN #
-    com.example.board: WARN #
+    org.hibernate: INFO #
+    com.example.board: INFO #
     org.springframework.security: DEBUG # Security 관련 로그 (개발 시 디버깅용)
+    org.springframework.security.oauth2: DEBUG
 #TRACE > DEBUG > INFO > WARN > ERROR  (Trace 가 가장 자세하게 나타냄) , 개발중엔 DEBUG 가 안정적
