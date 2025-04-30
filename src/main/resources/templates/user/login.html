@@ -11,6 +11,60 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 커스텀 CSS -->
     <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <style>
+        .social-login-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .social-login-btn:hover {
+            opacity: 0.9;
+            color: white;
+        }
+        .social-login-btn i {
+            margin-right: 10px;
+        }
+        .google-btn {
+            background-color: #dd4b39;
+        }
+        .kakao-btn {
+            background-color: #fee500;
+            color: #000000;
+        }
+        .kakao-btn:hover {
+            color: #000000;
+        }
+        .naver-btn {
+            background-color: #1ec800;
+        }
+        .social-divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .social-divider::before, .social-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background-color: #dee2e6;
+        }
+        .social-divider::before {
+            left: 0;
+        }
+        .social-divider::after {
+            right: 0;
+        }
+    </style>
 </head>
 <body class="bg-light">
 <div class="container">
@@ -28,6 +82,11 @@
                         <i class="fas fa-exclamation-circle me-2"></i>
                         잘못된 사용자명 또는 비밀번호입니다.
                     </div>
+                    <!-- OAuth2 로그인 실패 시 에러 메시지 표시 -->
+                    <div th:if="${oauth2Error}" class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        소셜 로그인 중 오류가 발생했습니다: <span th:text="${errorMessage}"></span>
+                    </div>
                     <!-- 로그아웃 시 메시지 표시 -->
                     <div th:if="${param.logout}" class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
@@ -37,6 +96,23 @@
                     <div th:if="${registrationSuccess != null}" class="alert alert-success">
                         <i class="fas fa-check-circle me-2"></i>
                         <span th:text="${registrationSuccess}">회원가입이 성공적으로 완료되었습니다.</span>
+                    </div>
+
+                    <!-- 소셜 로그인 버튼 -->
+                    <div class="mb-4">
+                        <a href="/oauth2/authorization/google" class="social-login-btn google-btn">
+                            <i class="fab fa-google"></i> 구글 계정으로 로그인
+                        </a>
+                        <a href="/oauth2/authorization/kakao" class="social-login-btn kakao-btn">
+                            <i class="fas fa-comment"></i> 카카오 계정으로 로그인
+                        </a>
+                        <a href="/oauth2/authorization/naver" class="social-login-btn naver-btn">
+                            <i class="fas fa-n"></i> 네이버 계정으로 로그인
+                        </a>
+                    </div>
+
+                    <div class="social-divider">
+                        <span class="px-2 bg-light">또는</span>
                     </div>
 
                     <form th:action="@{/login}" method="post" class="needs-validation" novalidate>

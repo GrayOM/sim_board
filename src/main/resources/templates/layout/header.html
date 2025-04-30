@@ -12,6 +12,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 커스텀 CSS -->
     <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <style>
+        .social-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            margin-left: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .social-badge-google {
+            background-color: #dd4b39;
+            color: white;
+        }
+        .social-badge-kakao {
+            background-color: #fee500;
+            color: #000000;
+        }
+        .social-badge-naver {
+            background-color: #1ec800;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <header th:fragment="header" class="bg-dark text-white py-3 mb-4">
@@ -43,6 +66,23 @@
                         <i class="fas fa-user me-1"></i>
                         <span sec:authentication="name">사용자</span>
                         <span sec:authorize="hasRole('ADMIN')" class="badge bg-danger ms-1">관리자</span>
+
+                        <!-- 소셜 로그인 뱃지 - 파라미터 및 세션값 확인 -->
+                        <th:block th:if="${param.provider != null and param.provider[0] == 'google' or session.auth_provider == 'google'}">
+                            <span class="social-badge social-badge-google">
+                                <i class="fab fa-google me-1"></i> Google
+                            </span>
+                        </th:block>
+                        <th:block th:if="${param.provider != null and param.provider[0] == 'kakao' or session.auth_provider == 'kakao'}">
+                            <span class="social-badge social-badge-kakao">
+                                <i class="fas fa-comment me-1"></i> Kakao
+                            </span>
+                        </th:block>
+                        <th:block th:if="${param.provider != null and param.provider[0] == 'naver' or session.auth_provider == 'naver'}">
+                            <span class="social-badge social-badge-naver">
+                                <i class="fas fa-n me-1"></i> Naver
+                            </span>
+                        </th:block>
                     </span>
                 </div>
             </div>

@@ -35,4 +35,9 @@ public class user {
     private String email;  // 사용자 이메일
 
     private String role;  // 사용자의 권한 게시글 수정,삭제 등등
+
+    // OAuth2 관련 필드 추가
+    private String provider;         // 소셜 로그인 제공자 (google, kakao, naver)
+    private String providerId;       // 소셜 로그인 제공자에서의 ID
+    private String profileImageUrl;  // 프로필 이미지 URL
 }
