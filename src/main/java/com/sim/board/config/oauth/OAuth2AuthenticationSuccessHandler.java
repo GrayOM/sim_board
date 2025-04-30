@@ -4,6 +4,7 @@ import com.sim.board.config.oauth.userinfo.OAuth2UserInfo;
 import com.sim.board.config.oauth.userinfo.OAuth2UserInfoFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -18,11 +19,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private final AuthenticationSessionService authSessionService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
 
-        // OAuth2 인증인 경우 사용자 이메일 정보를 리다이렉트 URL에 포함
+        HttpSession session = request.getSession(true);
+
+        // OAuth2 인증인 경우 사용자 이메일 정보를 세션과 리다이렉트 URL에 포함
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oAuth2User = oauthToken.getPrincipal();
             String registrationId = oauthToken.getAuthorizedClientRegistrationId();
@@ -31,10 +36,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             Map<String, Object> attributes = oAuth2User.getAttributes();
             OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
 
-            // 소셜 로그인 제공자와 이메일 정보를 쿼리 파라미터로 추가
-            String email = userInfo.getEmail();
-            String redirectUrl = "/boards?login=true&provider=" + registrationId;
+            // 세션에 인증 정보 저장
+            session.setAttribute("auth_provider", registrationId);
 
+            // 이메일 정보를 세션에 저장
+            String email = userInfo.getEmail();
+            if (email != null && !email.isEmpty()) {
+                session.setAttribute("auth_username", email);
+            } else {
+                // 이메일이 없는 경우 고유 ID 기반 사용자명 생성
+                String username = registrationId + "-user-" + userInfo.getId();
+                session.setAttribute("auth_username", username);
+            }
+
+            // 디버깅 로그
+            System.out.println("OAuth2 로그인 성공 - Provider: " + registrationId);
+            System.out.println("OAuth2 로그인 성공 - Email: " + email);
+            System.out.println("OAuth2 로그인 성공 - ID: " + userInfo.getId());
+
+            // 리다이렉트 URL에도 정보 포함 (하위 호환성 유지)
+            String redirectUrl = "/boards?login=true&provider=" + registrationId;
             if (email != null && !email.isEmpty()) {
                 redirectUrl += "&username=" + email;
             }

@@ -64,23 +64,27 @@
                     </form>
                     <span class="ms-2 badge bg-light text-dark">
                         <i class="fas fa-user me-1"></i>
-                        <!-- 쿼리 파라미터에 username이 있으면 표시, 없으면 인증 정보에서 가져옴 -->
-                        <span th:if="${param.username != null}" th:text="${param.username[0]}">사용자</span>
-                        <span th:unless="${param.username != null}" sec:authentication="name">사용자</span>
+                        <!-- 세션에 저장된 사용자명 우선 표시, 없으면 URL 파라미터, 마지막으로 인증 정보 사용 -->
+                        <span th:if="${session.auth_username != null}" th:text="${session.auth_username}">사용자</span>
+                        <span th:unless="${session.auth_username != null}"
+                              th:if="${param.username != null}" th:text="${param.username[0]}">사용자</span>
+                        <span th:unless="${session.auth_username != null || param.username != null}"
+                              sec:authentication="name">사용자</span>
+
                         <span sec:authorize="hasRole('ADMIN')" class="badge bg-danger ms-1">관리자</span>
 
-                        <!-- 소셜 로그인 뱃지 - 파라미터 및 세션값 확인 -->
-                        <th:block th:if="${session.auth_provider == 'google' || param.provider != null and param.provider[0] == 'google'}">
+                        <!-- 소셜 로그인 뱃지 - 세션 정보 우선 사용 -->
+                        <th:block th:if="${session.auth_provider == 'google'}">
                             <span class="social-badge social-badge-google">
                                 <i class="fab fa-google me-1"></i> Google
                             </span>
                         </th:block>
-                        <th:block th:if="${session.auth_provider == 'kakao' || param.provider != null and param.provider[0] == 'kakao'}">
+                        <th:block th:if="${session.auth_provider == 'kakao'}">
                             <span class="social-badge social-badge-kakao">
                                 <i class="fas fa-comment me-1"></i> Kakao
                             </span>
                         </th:block>
-                        <th:block th:if="${session.auth_provider == 'naver' || param.provider != null and param.provider[0] == 'naver'}">
+                        <th:block th:if="${session.auth_provider == 'naver'}">
                             <span class="social-badge social-badge-naver">
                                 <i class="fas fa-n me-1"></i> Naver
                             </span>
