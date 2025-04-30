@@ -64,7 +64,9 @@
                     </form>
                     <span class="ms-2 badge bg-light text-dark">
                         <i class="fas fa-user me-1"></i>
-                        <span sec:authentication="name">사용자</span>
+                        <!-- 쿼리 파라미터에 username이 있으면 표시, 없으면 인증 정보에서 가져옴 -->
+                        <span th:if="${param.username != null}" th:text="${param.username[0]}">사용자</span>
+                        <span th:unless="${param.username != null}" sec:authentication="name">사용자</span>
                         <span sec:authorize="hasRole('ADMIN')" class="badge bg-danger ms-1">관리자</span>
 
                         <!-- 소셜 로그인 뱃지 - 파라미터 및 세션값 확인 -->

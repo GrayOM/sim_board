@@ -56,10 +56,16 @@ public class user_controller {
                                RedirectAttributes redirectAttributes) {
 
         String username;
+        String email = null;
 
-        if (principal instanceof OAuth2User && provider != null) {
+        if (principal instanceof OAuth2User) {
             // OAuth2 로그인 사용자
             OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) principal;
+
+            // 제공자 정보가 파라미터로 없다면 토큰에서 가져옴
+            if (provider == null) {
+                provider = token.getAuthorizedClientRegistrationId();
+            }
 
             // OAuth2 제공자 정보 (google, kakao, naver)를 설정
             redirectAttributes.addAttribute("provider", provider);
@@ -67,18 +73,48 @@ public class user_controller {
             // 사용자명을 가져옵니다. 제공자마다 속성 구조가 다를 수 있습니다.
             Map<String, Object> attributes = ((OAuth2User) principal).getAttributes();
 
-            // 이메일 또는 다른 고유 식별자를 사용자명으로 사용
-            if (provider.equals("google")) {
-                username = attributes.get("email").toString();
-            } else if (provider.equals("kakao")) {
-                Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-                username = kakaoAccount.get("email").toString();
-            } else if (provider.equals("naver")) {
-                Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-                username = response.get("email").toString();
+            // 각 소셜 로그인 제공자별로 이메일 추출
+            if ("google".equals(provider)) {
+                email = (String) attributes.get("email");
+                username = email;
+            } else if ("kakao".equals(provider)) {
+                // 안전한 형변환을 위해 instanceof 검사 추가
+                Object kakaoAccountObj = attributes.get("kakao_account");
+                if (kakaoAccountObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
+                    if (kakaoAccount.containsKey("email")) {
+                        email = (String) kakaoAccount.get("email");
+                        username = email;
+                    } else {
+                        username = "kakao-user-" + attributes.get("id");
+                    }
+                } else {
+                    username = "kakao-user-" + attributes.get("id");
+                }
+            } else if ("naver".equals(provider)) {
+                // 안전한 형변환을 위해 instanceof 검사 추가
+                Object responseObj = attributes.get("response");
+                if (responseObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> response = (Map<String, Object>) responseObj;
+                    if (response.containsKey("email")) {
+                        email = (String) response.get("email");
+                        username = email;
+                    } else {
+                        username = "naver-user-" + response.get("id");
+                    }
+                } else {
+                    username = "naver-user-unknown";
+                }
             } else {
-                username = "oauth2-user"; // 기본값
+                username = "oauth2-user-" + System.currentTimeMillis(); // 기본값
             }
+
+            // 디버깅 로그
+            System.out.println("OAuth2 로그인 - Provider: " + provider);
+            System.out.println("OAuth2 로그인 - Email: " + email);
+            System.out.println("OAuth2 로그인 - Username: " + username);
 
         } else if (principal instanceof UserDetails) {
             // 일반 로그인 사용자
@@ -93,7 +129,6 @@ public class user_controller {
 
         return "redirect:/boards";
     }
-
     // 회원가입 페이지
     @GetMapping("/register")
     public String registerForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
