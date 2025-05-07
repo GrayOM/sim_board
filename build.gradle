@@ -1,8 +1,8 @@
 // Gradle 설정 파일
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.4' // Spring Boot 3.4.4
-	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springframework.boot' version '3.2.3' // Spring Boot 3.4.4 에서 다운 그레이드 [swagger-ui 호환성 문제]
+	id 'io.spring.dependency-management' version '1.1.4'// [다운 그레이드]
 }
 
 group = 'com.sim'
@@ -42,7 +42,7 @@ dependencies {
 	implementation 'com.mysql:mysql-connector-j:8.0.33'
 
 	// Swagger UI
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0' // 업그레이드 2.2
 
 	// .env load 기능 추가
 	implementation 'me.paulschwarz:spring-dotenv:2.5.4'
