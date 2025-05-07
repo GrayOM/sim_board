@@ -1,5 +1,9 @@
 package com.sim.board.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,28 +18,38 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "upload_files")  // table name
+@Table(name = "upload_files")
+@Schema(description = "파일 업로드 엔티티")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class fileupload {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "파일 ID", example = "1")
     private Long id;
 
     @Column(nullable = false)
-    private String originalFilename;  // 파일 원본 이름
+    @Schema(description = "원본 파일명", example = "document.pdf")
+    private String originalFilename;
 
     @Column(nullable = false)
-    private String storedFilename;  // 서버 기준으로 저장된 파일 이름
+    @Schema(description = "저장된 파일명", example = "uuid_document.pdf")
+    private String storedFilename;
 
     @Column(nullable = false)
-    private String filePath;  // 서버 기준 파일 저장 위치
+    @Schema(description = "파일 저장 경로", example = "/app/uploads/uuid_document.pdf")
+    private String filePath;
 
-    private Long fileSize;  // 파일 크기 [byte]
+    @Schema(description = "파일 크기(바이트)", example = "1024")
+    private Long fileSize;
 
-    @ManyToOne(fetch = FetchType.LAZY) //업로드 시킨 파일은 -> 게시글에 속함
-    @JoinColumn(name = "board_id") // board_id 외래키 설정
-    private board board;  // 파일이 업로드 된 게시글
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    @Schema(description = "파일이 첨부된 게시글")
+    @JsonBackReference
+    private board board;
 
     @CreationTimestamp
-    private LocalDateTime uploadDate;  // 업로드 일자
+    @Schema(description = "파일 업로드 일자", example = "2025-04-30T10:05:00")
+    private LocalDateTime uploadDate;
 }

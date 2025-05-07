@@ -1,5 +1,9 @@
 package com.sim.board.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,26 +19,35 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class comment { //게시판 댓글
+@Schema(description = "댓글 엔티티")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+public class comment {
 
-    @Id //댓글 id primarykey
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 1씩 증가
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "댓글 ID", example = "1")
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "TEXT") // 댓글 내용 Text 타입
-    private String content;  // 댓글 내용
+    @Column(nullable = false, columnDefinition = "TEXT")
+    @Schema(description = "댓글 내용", example = "좋은 글 감사합니다!")
+    private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY) //댓글 -> 댓글쓴 게시판에 대해서 속함
-    @JoinColumn(name = "board_id") //board_id 외래키로 설정
-    private board board;  // 게시글
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    @Schema(description = "댓글이 달린 게시글")
+    @JsonBackReference
+    private board board;
 
-    @ManyToOne(fetch = FetchType.LAZY) // 댓글 -> 댓글쓴 사용자에 속함
-    @JoinColumn(name = "user_id") // user_id 외래키로 설정
-    private user user;  // 작성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @Schema(description = "댓글 작성자")
+    private user user;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;  // 댓글 생성시간
+    @Schema(description = "댓글 생성 시간", example = "2025-04-30T10:15:00")
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;  // 댓글을 수정한 시간
+    @Schema(description = "댓글 수정 시간", example = "2025-04-30T10:20:00")
+    private LocalDateTime updatedAt;
 }
