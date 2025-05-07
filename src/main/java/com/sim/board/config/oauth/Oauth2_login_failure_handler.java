@@ -11,15 +11,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 
 @Component
-public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
-
+public class Oauth2_login_failure_handler extends SimpleUrlAuthenticationFailureHandler {
+//Oauth2 인증 실패시 호출되는 클래스
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
 
-        String targetUrl = UriComponentsBuilder.fromUriString("/login")
-                .queryParam("error", "oauth2_error")
-                .queryParam("message", exception.getLocalizedMessage())
+        String targetUrl = UriComponentsBuilder.fromUriString("/login") //로그인 페이지로 리다렉트
+                .queryParam("error", "oauth2_error") //Oauth2 인증 오류 표시
+                .queryParam("message", exception.getLocalizedMessage()) // 오류 상세 메세지
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

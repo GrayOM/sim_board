@@ -1,7 +1,7 @@
 package com.sim.board.config.oauth;
 
-import com.sim.board.config.oauth.userinfo.OAuth2UserInfo;
-import com.sim.board.config.oauth.userinfo.OAuth2UserInfoFactory;
+import com.sim.board.config.oauth.userinfo.OAuth2_UserInfo;
+import com.sim.board.config.oauth.userinfo.OAuth2_User_Info_Factory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -17,9 +17,9 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class Oauth2_login_success_handler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final AuthenticationSessionService authSessionService;
+    private final User_session_manager authSessionService;
 
     // user_service 의존성 제거 - 순환 참조 방지
     // private final user_service userService;
@@ -37,7 +37,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
             // 소셜 로그인 제공자별 사용자 정보 추출
             Map<String, Object> attributes = oAuth2User.getAttributes();
-            OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
+            OAuth2_UserInfo userInfo = OAuth2_User_Info_Factory.getOAuth2UserInfo(registrationId, attributes);
 
             // 세션에 인증 정보 저장
             session.setAttribute("auth_provider", registrationId);

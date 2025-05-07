@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @Configuration
-public class jackson_config {
+public class jackson_config { //java 날짜 출력 타입 정하는 클래스
 
     @Bean
     public ObjectMapper objectMapper() {

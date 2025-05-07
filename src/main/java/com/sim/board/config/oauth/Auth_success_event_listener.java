@@ -12,24 +12,25 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticationEventListener {
+public class Auth_success_event_listener { //인증 성공 , 인증 정보 세션에 저장시키는 클래스
 
-    private final AuthenticationSessionService authenticationSessionService;
+    private final User_session_manager usersessionmanager;
 
     @EventListener
     public void onAuthenticationSuccess(InteractiveAuthenticationSuccessEvent event) {
+        //인증 객체를 이벤트로부터 가져오기
         Authentication authentication = event.getAuthentication();
 
-        // 현재 요청에서 세션 가져오기
+        // 현재 요청에서 세션을 가져오기 위한 객체
         ServletRequestAttributes attributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-        if (attributes != null) {
-            HttpServletRequest request = attributes.getRequest();
-            HttpSession session = request.getSession(true);
+        if (attributes != null) { //http 요청 속성 키-값 있는경우
+            HttpServletRequest request = attributes.getRequest(); //현재 http 요청을 가져오기
+            HttpSession session = request.getSession(true);  //없으면 세션 가져오기
 
             // 인증 제공자 정보를 세션에 저장
-            authenticationSessionService.saveProviderToSession(session, authentication);
+            usersessionmanager.saveProviderToSession(session, authentication);
         }
     }
 }

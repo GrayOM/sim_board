@@ -1,8 +1,8 @@
 package com.sim.board.config;
 
-import com.sim.board.config.oauth.CustomOAuth2UserService;
-import com.sim.board.config.oauth.OAuth2AuthenticationFailureHandler;
-import com.sim.board.config.oauth.OAuth2AuthenticationSuccessHandler;
+import com.sim.board.config.oauth.Oauth2_user_details_service;
+import com.sim.board.config.oauth.Oauth2_login_failure_handler;
+import com.sim.board.config.oauth.Oauth2_login_success_handler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,16 +16,16 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity //spring security를 활성화
 public class security_config {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final Oauth2_user_details_service oauth2Userdetailsservice;
+    private final Oauth2_login_success_handler oauth2Loginsuccesshandler;
+    private final Oauth2_login_failure_handler oauth2Loginfailurehandler;
 
-    public security_config(CustomOAuth2UserService customOAuth2UserService,
-                           OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
-                           OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler) {
-        this.customOAuth2UserService = customOAuth2UserService;
-        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
-        this.oAuth2AuthenticationFailureHandler = oAuth2AuthenticationFailureHandler;
+    public security_config(Oauth2_user_details_service oauth2Userdetailsservice,
+                           Oauth2_login_success_handler oauth2Loginsuccesshandler,
+                           Oauth2_login_failure_handler oauth2Loginfailurehandler) {
+        this.oauth2Userdetailsservice = oauth2Userdetailsservice;
+        this.oauth2Loginsuccesshandler = oauth2Loginsuccesshandler;
+        this.oauth2Loginfailurehandler = oauth2Loginfailurehandler;
     }
 
     @Bean
@@ -57,9 +57,9 @@ public class security_config {
                         .loginPage("/login")
                         .defaultSuccessUrl("/boards?login=true", true)
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                                .userService(oauth2Userdetailsservice))
+                        .successHandler(oauth2Loginsuccesshandler)
+                        .failureHandler(oauth2Loginfailurehandler)
                 );
 
         return http.build();

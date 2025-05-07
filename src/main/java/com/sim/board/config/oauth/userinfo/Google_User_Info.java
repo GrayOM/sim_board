@@ -2,19 +2,19 @@ package com.sim.board.config.oauth.userinfo;
 
 import java.util.Map;
 
-public class GoogleUserInfo extends OAuth2UserInfo {
-
-    public GoogleUserInfo(Map<String, Object> attributes) {
+public class Google_User_Info extends OAuth2_UserInfo {
+//OAuth2userinfo 를 확장하여 google oauth2 사용자 정보 처리
+    public Google_User_Info(Map<String, Object> attributes) {
         super(attributes);
     }
 
     @Override
-    public String getId(){
+    public String getId(){ //Google Oauth2 응답에서 sub 필드가 사용자 id 로 사용
         return attributes.get("sub").toString();
     }
 
     @Override
-    public String getName() {
+    public String getName() {  //name,email , image , 제공자 이름으로 반환시킴
         return attributes.get("name").toString();
     }
 

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class datalnitializer implements CommandLineRunner {
-
+//기본 관리자 설정하는 클래스
     private final user_service userService;
 
     @Override

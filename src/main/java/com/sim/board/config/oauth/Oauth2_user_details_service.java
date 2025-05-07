@@ -2,8 +2,8 @@
 
 package com.sim.board.config.oauth;
 
-import com.sim.board.config.oauth.userinfo.OAuth2UserInfo;
-import com.sim.board.config.oauth.userinfo.OAuth2UserInfoFactory;
+import com.sim.board.config.oauth.userinfo.OAuth2_UserInfo;
+import com.sim.board.config.oauth.userinfo.OAuth2_User_Info_Factory;
 import com.sim.board.domain.user;
 import com.sim.board.repository.user_repository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class Oauth2_user_details_service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final user_repository userRepository;
 
@@ -54,7 +54,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         try {
             // OAuth2UserInfo 안전하게 생성
-            OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
+            OAuth2_UserInfo oAuth2UserInfo = OAuth2_User_Info_Factory.getOAuth2UserInfo(registrationId, attributes);
 
             // ID, 이메일 추출
             String providerId = oAuth2UserInfo.getId();
