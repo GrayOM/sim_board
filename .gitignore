@@ -1,10 +1,10 @@
 HELP.md
 .gradle
 build/
-.env
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+#.env # 검토 후 주석 삭제
 
 ### STS ###
 .apt_generated
