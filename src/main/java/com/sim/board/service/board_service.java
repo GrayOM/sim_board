@@ -52,7 +52,7 @@ public class board_service {
         //제목과 내용 업데이트
         board.setTitle(boardRequest.getTitle());
         board.setContent(boardRequest.getContent());
-        board.setIsModified(true);
+        board.setIsModified(true); //수정 여부 표시
         board.setUpdatedAt(LocalDateTime.now()); // 수정 시간 갱신
 
         boardRepository.save(board); //변경 내용 저장

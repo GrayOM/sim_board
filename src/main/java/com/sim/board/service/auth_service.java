@@ -83,18 +83,14 @@ public class auth_service {
         return authentication.getName();
     }
 
-    /**
-     * OAuth2 사용자인지 확인합니다.
-     */
+
+    //Oauth 사용자 인지 확인하는 과정
     public boolean isOAuth2User(Authentication authentication) {
         return authentication != null &&
                 authentication.getPrincipal() instanceof OAuth2User;
     }
 
-    /**
-     * 인증 객체로부터 이메일을 추출합니다.
-     * OAuth2 인증과 일반 인증 모두 처리합니다.
-     */
+    //인증으로 받은 이메일을 추출 , Oauth2 인증과 일반 모두 처리
     public String extractEmail(Authentication authentication) {
         if (authentication == null) {
             return null;

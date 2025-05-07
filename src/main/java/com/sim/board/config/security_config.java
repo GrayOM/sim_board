@@ -53,13 +53,13 @@ public class security_config {
                         .logoutSuccessUrl("/boards?logout")  // 로그아웃 성공 시 경로 수정
                         .permitAll() // 로그아웃 요청은 모두 허용 시킴
                 )
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/boards?login=true", true)
+                .oauth2Login(oauth -> oauth //oauth 로그인 설정
+                        .loginPage("/login") //ouath 로그인 페이지 접속
+                        .defaultSuccessUrl("/boards?login=true", true) //로그인 성공시 경로
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                                .userService(customOAuth2UserService)) //소셜 로그인 사용자 정보 처리
+                        .successHandler(oAuth2AuthenticationSuccessHandler) //소셜 로그인 성공 핸들러
+                        .failureHandler(oAuth2AuthenticationFailureHandler) //소셜 로그인 실패 핸들러
                 );
 
         return http.build();

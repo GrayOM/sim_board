@@ -14,15 +14,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Map;
-
+//Oauth2 로그인 시도 성공햇을때 성공 핸들러
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final AuthenticationSessionService authSessionService;
-
-    // user_service 의존성 제거 - 순환 참조 방지
-    // private final user_service userService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)

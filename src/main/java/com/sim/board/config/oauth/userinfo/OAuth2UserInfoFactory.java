@@ -1,9 +1,7 @@
-// src/main/java/com/sim/board/config/oauth/userinfo/OAuth2UserInfoFactory.java 파일 개선
-
 package com.sim.board.config.oauth.userinfo;
 
 import java.util.Map;
-
+//Oauth2 에서 가져오는 사용자인증 정보가 이상하거나 다른 Oauth2 아이디로 시도할라고할떄
 public class OAuth2UserInfoFactory {
 
     public static OAuth2UserInfo getOAuth2UserInfo(String registrationId, Map<String, Object> attributes) {

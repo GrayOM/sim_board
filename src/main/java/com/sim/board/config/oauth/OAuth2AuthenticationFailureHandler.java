@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-
+//Oauth2 인증 실패시 사용자에게 오류 전달 , 로그인 페이지로 리다이렉트 시킴
 @Component
 public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 

@@ -2,7 +2,7 @@ package com.sim.board.config.oauth.userinfo;
 
 import java.util.HashMap;
 import java.util.Map;
-
+//kakao 인증 서버로부터 받는 사용자 정보 처리
 public class KakaoUserInfo extends OAuth2UserInfo {
 
     public KakaoUserInfo(Map<String, Object> attributes) {
@@ -10,12 +10,12 @@ public class KakaoUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getId() {
+    public String getId() { //사용자 Id 반환
         return attributes.get("id").toString();
     }
 
     @Override
-    public String getName() {
+    public String getName() { //이름반환 없을시 kakaouser
         Map<String, Object> properties = getProperties();
         if (properties == null) {
             return "Kakao User";
@@ -24,7 +24,7 @@ public class KakaoUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getEmail() {
+    public String getEmail() { //사용자 이메일
         Map<String, Object> kakaoAccount = getKakaoAccount();
         if (kakaoAccount == null) {
             return "";
@@ -33,7 +33,7 @@ public class KakaoUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getImageUrl() {
+    public String getImageUrl() { //이미지 반환
         Map<String, Object> properties = getProperties();
         if (properties == null) {
             return "";

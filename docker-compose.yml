@@ -18,7 +18,7 @@ services:
       - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
-      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET} #환경변수 .env로 설정
     volumes:
       - ./uploads:/app/uploads  # 호스트 upload 디렉토리를 app/uploads 에 마운트
 

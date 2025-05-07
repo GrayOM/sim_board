@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NaverUserInfo extends OAuth2UserInfo {
-
+//naver 인증서버에서 받은 사용자 정보 처리
     public NaverUserInfo(Map<String, Object> attributes) {
         super(attributes);
     }
 
     @Override
-    public String getId() {
+    public String getId() { //ID
         Map<String, Object> response = getResponse();
         if (response == null) {
             return null;
@@ -19,7 +19,7 @@ public class NaverUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getName() {
+    public String getName() { //name
         Map<String, Object> response = getResponse();
         if (response == null) {
             return "Naver User";
@@ -28,7 +28,7 @@ public class NaverUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getEmail() {
+    public String getEmail() { //email
         Map<String, Object> response = getResponse();
         if (response == null) {
             return "";
@@ -37,7 +37,7 @@ public class NaverUserInfo extends OAuth2UserInfo {
     }
 
     @Override
-    public String getImageUrl() {
+    public String getImageUrl() { //프로필 이미지
         Map<String, Object> response = getResponse();
         if (response == null) {
             return "";

@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
+// Oauth2 로그인 정보 처리
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -40,6 +40,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
         try {
+            //소셜 로그인 -> 사용자 정보 처리 시킴
             return processOAuth2User(userRequest, oAuth2User);
         } catch (AuthenticationException ex) {
             throw ex;
@@ -49,14 +50,16 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
+        //소셜 로그인 제공자 ID (google,naver,kakao)
         String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
+        //사용자 속성 정보 복사
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes()); // 안전한 복사본 생성
 
         try {
             // OAuth2UserInfo 안전하게 생성
             OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
 
-            // ID, 이메일 추출
+            // ID, 이메일, 이름 추출
             String providerId = oAuth2UserInfo.getId();
             String email = oAuth2UserInfo.getEmail();
             String name = oAuth2UserInfo.getName();
@@ -109,7 +112,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     userEntity.setProfileImageUrl(oAuth2UserInfo.getImageUrl());
                 }
 
-                // 역할이 없는 경우 ROLE_USER 역할 부여
+                // 정해진 역할이 없음 기본 사용자인 ROLE_USER 인가 적용
                 if (userEntity.getRole() == null || userEntity.getRole().isEmpty()) {
                     userEntity.setRole(user.ROLE_USER);
                 }
@@ -152,7 +155,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     attributes,
                     userNameAttributeName
             );
-        } catch (Exception e) {
+        } catch (Exception e) { //사용자 생성 중 오류 예외 처리
             System.err.println("OAuth2 사용자 처리 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
 
