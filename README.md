@@ -94,6 +94,8 @@ NAVER_CLIENT_SECRET=[발급 받은 클라이언트 시크릿 입력]
 
 ## Docker Compose를 활용한 실행 방법
 
+0. Docker Desktop 실행 
+
 1. 프로젝트 클론 (IDE Terminal)
    ```bash
    git clone https://github.com/GrayOM/sim_board.git
