@@ -94,6 +94,18 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,env,loggers,beans,mappings,threaddump,httpexchanges #Actuator 에서 활성화할 엔드포인트 목록
+        #건강상태 반환 , 애플리케이션 관련 정보 정의 반환 , 메모리 cpu사용량 http 요청 수 , 환경 변수 정보(DB 연결 정보) , 로깅 레벨 확인
+  endpoint:
+    health:
+      show-details: always #건강 지표 내역 상세 보기  , 기본값은 never
+  info:
+    env: #환경 변수 정보를 Actuator 의 info 엔드포인트에서 표시할지 여부
+      enabled: true # true
 # 로그 레벨 설정
 logging:
   level:

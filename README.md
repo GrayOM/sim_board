@@ -178,6 +178,14 @@ OAuth2 인증 => [google,kakao,naver] (authorizationCode)
 client_id : [발급 받은 클라이언트 ID 입력]
 client_secret : [발급 받은 클라이언트 시크릿 입력]
 ```
+## Actuator 조회
+```bash
+   http://localhost:8080/actuator
+```
+### 특정 Actuator 조회
+```bash
+   http://localhost:8080/actuator/{endpoint}
+```
 ## 프로젝트 구조
 
 ```
