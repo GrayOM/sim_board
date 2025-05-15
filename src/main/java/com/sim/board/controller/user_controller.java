@@ -1,7 +1,10 @@
+// src/main/java/com/sim/board/controller/user_controller.java (수정)
 package com.sim.board.controller;
 
 import com.sim.board.domain.user;
+import com.sim.board.dto.UserRegisterDto;
 import com.sim.board.service.user_service;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +12,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,86 +53,6 @@ public class user_controller {
         return "user/login";
     }
 
-    // 로그인 성공 처리 (OAuth 및 일반 로그인)
-    @GetMapping("/login-success")
-    public String loginSuccess(@AuthenticationPrincipal Object principal,
-                               @RequestParam(value = "provider", required = false) String provider,
-                               RedirectAttributes redirectAttributes) {
-
-        String username;
-        String email = null;
-
-        if (principal instanceof OAuth2User) {
-            // OAuth2 로그인 사용자
-            OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) principal;
-
-            // 제공자 정보가 파라미터로 없다면 토큰에서 가져옴
-            if (provider == null) {
-                provider = token.getAuthorizedClientRegistrationId();
-            }
-
-            // OAuth2 제공자 정보 (google, kakao, naver)를 설정
-            redirectAttributes.addAttribute("provider", provider);
-
-            // 사용자명을 가져옵니다. 제공자마다 속성 구조가 다를 수 있습니다.
-            Map<String, Object> attributes = ((OAuth2User) principal).getAttributes();
-
-            // 각 소셜 로그인 제공자별로 이메일 추출
-            if ("google".equals(provider)) {
-                email = (String) attributes.get("email");
-                username = email;
-            } else if ("kakao".equals(provider)) {
-                // 안전한 형변환을 위해 instanceof 검사 추가
-                Object kakaoAccountObj = attributes.get("kakao_account");
-                if (kakaoAccountObj instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
-                    if (kakaoAccount.containsKey("email")) {
-                        email = (String) kakaoAccount.get("email");
-                        username = email;
-                    } else {
-                        username = "kakao-user-" + attributes.get("id");
-                    }
-                } else {
-                    username = "kakao-user-" + attributes.get("id");
-                }
-            } else if ("naver".equals(provider)) {
-                // 안전한 형변환을 위해 instanceof 검사 추가
-                Object responseObj = attributes.get("response");
-                if (responseObj instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> response = (Map<String, Object>) responseObj;
-                    if (response.containsKey("email")) {
-                        email = (String) response.get("email");
-                        username = email;
-                    } else {
-                        username = "naver-user-" + response.get("id");
-                    }
-                } else {
-                    username = "naver-user-unknown";
-                }
-            } else {
-                username = "oauth2-user-" + System.currentTimeMillis(); // 기본값
-            }
-
-            // 디버깅 로그
-            System.out.println("OAuth2 로그인 - Provider: " + provider);
-            System.out.println("OAuth2 로그인 - Email: " + email);
-            System.out.println("OAuth2 로그인 - Username: " + username);
-
-        } else if (principal instanceof UserDetails) {
-            // 일반 로그인 사용자
-            username = ((UserDetails) principal).getUsername();
-        } else {
-            // 기타 경우 (비정상)
-            return "redirect:/login?error";
-        }
-
-        redirectAttributes.addAttribute("login", true);
-        redirectAttributes.addAttribute("username", username);
-
-        return "redirect:/boards";
-    }
     // 회원가입 페이지
     @GetMapping("/register")
     public String registerForm(@AuthenticationPrincipal UserDetails userDetails, Model model) {
@@ -136,20 +60,36 @@ public class user_controller {
         if (userDetails != null) {
             return "redirect:/boards";
         }
-        model.addAttribute("user", new user());
+        model.addAttribute("userDto", new UserRegisterDto());
         return "user/register";
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute user user, Model model, RedirectAttributes redirectAttributes) {
+    public String register(@Valid @ModelAttribute("userDto") UserRegisterDto userDto,
+                           BindingResult bindingResult,
+                           Model model,
+                           RedirectAttributes redirectAttributes) {
+        // 입력값 검증 오류 처리
+        if (bindingResult.hasErrors()) {
+            return "user/register";
+        }
+
         try {
-            userService.register(user);
+            // DTO를 엔티티로 변환
+            user newUser = new user();
+            newUser.setUsername(userDto.getUsername());
+            newUser.setPassword(userDto.getPassword());
+            newUser.setName(userDto.getName());
+            newUser.setEmail(userDto.getEmail());
+
+            userService.register(newUser);
             redirectAttributes.addFlashAttribute("registrationSuccess", "회원가입이 성공적으로 완료되었습니다.");
             return "redirect:/login";
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("user", user);
             return "user/register";
         }
     }
+
+    // 다른 메서드는 그대로 유지...
 }
