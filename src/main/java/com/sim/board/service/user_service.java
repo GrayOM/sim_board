@@ -16,9 +16,15 @@ public class user_service {
     private final user_repository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 회원가입
+    // user_service.java 수정
+// user 등록 부분만 수정
     @Transactional
     public user register(user user) {
+        // 입력값 살균
+        user.setUsername(sanitizerService.sanitizeStrict(user.getUsername()));
+        user.setName(sanitizerService.sanitizeStrict(user.getName()));
+        user.setEmail(sanitizerService.sanitizeStrict(user.getEmail()));
+
         // 사용자명과 이메일 중복 검사
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new RuntimeException("이미 사용 중인 아이디입니다.");
@@ -32,6 +38,9 @@ public class user_service {
 
         // 비밀번호 암호화
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // 비밀번호 변경 시간 설정
+        user.setPasswordChangedAt(LocalDateTime.now());
 
         // 기본 권한 설정
         user.setRole(com.sim.board.domain.user.ROLE_USER);

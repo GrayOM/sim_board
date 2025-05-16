@@ -1,4 +1,3 @@
-// src/main/java/com/sim/board/config/SecurityHeadersFilter.java
 package com.sim.board.config;
 
 import jakarta.servlet.*;
@@ -25,15 +24,32 @@ public class SecurityHeadersFilter implements Filter {
         httpResponse.setHeader("X-Content-Type-Options", "nosniff");
 
         // HSTS (HTTPS 강제)
-        httpResponse.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        httpResponse.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
 
-        // Content Security Policy
+        // 참조자 정책
+        httpResponse.setHeader("Referrer-Policy", "same-origin");
+
+        // 기능 정책 - 위험한 기능 제한
+        httpResponse.setHeader("Feature-Policy",
+                "camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'");
+
+        // Content Security Policy - 더 강화된 정책
         httpResponse.setHeader("Content-Security-Policy",
-                "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-                        "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+                "default-src 'self'; " +
+                        "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; " +
+                        "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; " +
                         "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
                         "img-src 'self' data:; " +
-                        "connect-src 'self';");
+                        "connect-src 'self'; " +
+                        "frame-ancestors 'none'; " +
+                        "form-action 'self'; " +
+                        "base-uri 'self'; " +
+                        "object-src 'none'");
+
+        // 캐시 제어 - 민감한 정보를 브라우저에 캐싱하지 않도록
+        httpResponse.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
+        httpResponse.setHeader("Pragma", "no-cache");
+        httpResponse.setHeader("Expires", "0");
 
         chain.doFilter(request, response);
     }

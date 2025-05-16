@@ -49,7 +49,10 @@ public class security_config {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(customCsrfTokenRepository)
+                        .ignoringRequestMatchers("/api/**") // API 엔드포인트는 CSRF 면제
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/login-success", "/register", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/**").permitAll()

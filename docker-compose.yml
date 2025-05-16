@@ -6,7 +6,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - "8080:8080" # host:container port
+      - "8443:8443" # HTTPS 포트 매핑
     depends_on:
       - db #DB 서비스 ON
     environment: #jdbc:mysql:// mysql 연결 , SSL 연결 사용 x , mysql 서버에서 클라이언트 공개 키 검색 , 서버시간 서울 기준
@@ -19,8 +19,14 @@ services:
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - SERVER_SSL_ENABLED=true
+      - SERVER_SSL_KEY_STORE=/app/resources/board.p12
+      - SERVER_SSL_KEY_STORE_PASSWORD=boardpass
+      - SERVER_SSL_KEY_STORE_TYPE=PKCS12
+      - SERVER_SSL_KEY_ALIAS=board
     volumes:
       - ./uploads:/app/uploads  # 호스트 upload 디렉토리를 app/uploads 에 마운트
+      - ./src/main/resources/board.p12:/app/resources/board.p12  # SSL 인증서 마운트
 
   db:
     image: mysql:8.0 #mysql 정의

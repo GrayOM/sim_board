@@ -1,3 +1,4 @@
+// comment_service.java 수정
 package com.sim.board.service;
 
 import com.sim.board.domain.board;
@@ -17,6 +18,7 @@ public class comment_service {
 
     private final comment_repository commentRepository;
     private final board_repository boardRepository;
+    private final HtmlSanitizerService sanitizerService;
 
     // 댓글 목록 조회
     @Transactional(readOnly = true)
@@ -29,6 +31,9 @@ public class comment_service {
     public void createComment(Long boardId, comment comment, user user) {
         board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+
+        // XSS 방지를 위한 HTML 살균
+        comment.setContent(sanitizerService.sanitizeComment(comment.getContent()));
 
         comment.setBoard(board);
         comment.setUser(user);
@@ -47,7 +52,8 @@ public class comment_service {
             throw new RuntimeException("댓글 수정 권한이 없습니다.");
         }
 
-        comment.setContent(commentRequest.getContent());
+        // XSS 방지를 위한 HTML 살균
+        comment.setContent(sanitizerService.sanitizeComment(commentRequest.getContent()));
 
         commentRepository.save(comment);
     }
