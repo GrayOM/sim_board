@@ -1,3 +1,4 @@
+// src/main/java/com/sim/board/service/file_upload_service.java
 package com.sim.board.service;
 
 import com.sim.board.domain.board;
@@ -15,41 +16,53 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class file_upload_service {
 
-    private final file_upload_repository fileRepository; //파일 DB 작업 담당
-    private final board_repository boardRepository; // 게시글 DB 작업 담당
+    private final file_upload_repository fileRepository;
+    private final board_repository boardRepository;
 
     @Value("${file.upload-dir}")
-    private String uploadDir;  // application.yml에 설정한 업로드 경로
+    private String uploadDir;
 
-    // 파일 업로드
+    // 허용된 파일 확장자 목록
+    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt"
+    ));
+
+    // 최대 파일 크기 (5MB)
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+
     @Transactional
     public fileupload uploadFile(MultipartFile file, Long boardId) throws IOException {
         // 게시글 존재 여부 확인
         board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
+        // 파일 검증
+        validateFile(file);
+
         // 파일 저장 경로 생성
         String uploadPath = new File(uploadDir).getAbsolutePath();
         File dir = new File(uploadPath);
         if (!dir.exists()) {
-            //저장 디렉토리가 없을 경우 디렉토리 생성
             boolean created = dir.mkdirs();
-            if(!created) //생성 실패시
-            {
+            if(!created) {
                 throw new IOException("디렉토리 생성에 실패했습니다 : " + uploadPath);
             }
         }
 
         // 저장할 파일명 생성 (UUID + 원본 파일명)
         String originalFilename = file.getOriginalFilename();
-        String storedFilename = UUID.randomUUID() + "_" + originalFilename;
+        String extension = getExtension(originalFilename);
+        String storedFilename = UUID.randomUUID() + "." + extension;
         String filePath = uploadPath + File.separator + storedFilename;
 
         // 파일 저장
@@ -58,47 +71,73 @@ public class file_upload_service {
 
         // 파일 정보 데이터베이스에 저장
         fileupload fileEntity = fileupload.builder()
-                .originalFilename(originalFilename) //원본 파일명
-                .storedFilename(storedFilename) // 저장된 파일명
-                .filePath(filePath) //파일 경로
-                .fileSize(file.getSize()) //파일 크기
-                .board(board) //업로드된 게시글
+                .originalFilename(originalFilename)
+                .storedFilename(storedFilename)
+                .filePath(filePath)
+                .fileSize(file.getSize())
+                .board(board)
                 .build();
 
-        return fileRepository.save(fileEntity); //DB에 저장 후 저장된 엔티티 반환
+        return fileRepository.save(fileEntity);
     }
 
-    // 파일 다운로드를 위한 파일 정보 조회
+    // 파일 검증 메소드
+    private void validateFile(MultipartFile file) {
+        // 빈 파일 체크
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("파일이 비어 있습니다.");
+        }
+
+        // 파일 크기 체크
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("파일 크기가 5MB를 초과할 수 없습니다.");
+        }
+
+        // 파일 확장자 체크
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            throw new IllegalArgumentException("유효하지 않은 파일명입니다.");
+        }
+
+        String extension = getExtension(originalFilename).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("허용되지 않는 파일 형식입니다.");
+        }
+    }
+
+    // 파일 확장자 추출 메소드
+    private String getExtension(String filename) {
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(dotIndex + 1).toLowerCase();
+    }
+
+    // 나머지 메서드는 그대로 유지
     @Transactional(readOnly = true)
     public fileupload getFile(Long fileId) {
-        // id로 파일 정보 조회 , 없으면 예외
         return fileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다."));
     }
 
-    // 게시글에 첨부된 파일 목록 조회
     @Transactional(readOnly = true)
     public List<fileupload> getFilesByBoardId(Long boardId) {
-        //게시글 ID로 파일 목록 조회
         return fileRepository.findByBoardId(boardId);
     }
 
-    // 파일 삭제
     @Transactional
     public void deleteFile(Long fileId) {
         fileupload file = fileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다."));
 
-        // 실제 파일 삭제
         try {
             Path filePath = Paths.get(file.getFilePath());
-            Files.deleteIfExists(filePath); //파일이 존재하면 삭제 시킴
+            Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            //파일 삭제 실패 시 예외 발생
             throw new RuntimeException("파일 삭제 중 오류가 발생했습니다.", e);
         }
 
-        // 데이터베이스에서 파일 정보 삭제
         fileRepository.delete(file);
     }
 }

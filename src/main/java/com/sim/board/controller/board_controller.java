@@ -65,28 +65,41 @@ public class board_controller { // 게시판 요청 처리 [CRUD,file_upload,com
         return "board/write"; //write.html 반환
     }
 
-    // 게시글 저장 [POST]
+// src/main/java/com/sim/board/controller/board_controller.java (수정)
+// 게시글 저장 메서드 수정
+
     @PostMapping
-    public String write(@ModelAttribute board board, // 데이터 바인딩
-                        @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles, // 첨부 파일 저장 [선택]
-                        Authentication authentication) throws IOException { //현재 로그인된 사용자 저장
+    public String write(@ModelAttribute board board,
+                        @RequestParam(name = "uploadFiles", required = false) List<MultipartFile> uploadFiles,
+                        Authentication authentication,
+                        RedirectAttributes redirectAttributes) {
+        try {
+            // 인증 정보에서 사용자명 추출
+            String username = authService.extractUsername(authentication);
+            // 사용자 정보 조회
+            user user = userService.getUserByUsername(username);
+            board savedBoard = boardService.createBoard(board, user);
 
-        // 인증 정보에서 사용자명 추출
-        String username = authService.extractUsername(authentication);
-        // 사용자 정보 조회
-        user user = userService.getUserByUsername(username);
-        board savedBoard = boardService.createBoard(board, user); //게시글 생성
-
-        //사용자가 파일을 업로드 했을때
-        if (uploadFiles != null && !uploadFiles.isEmpty()) {
-            for (MultipartFile file : uploadFiles) {
-                if (!file.isEmpty()) {
-                    fileService.uploadFile(file, savedBoard.getId()); //파일을 저장 , DB에 기록시킴
+            // 사용자가 파일을 업로드 했을때
+            if (uploadFiles != null && !uploadFiles.isEmpty()) {
+                for (MultipartFile file : uploadFiles) {
+                    if (!file.isEmpty()) {
+                        try {
+                            fileService.uploadFile(file, savedBoard.getId());
+                        } catch (IllegalArgumentException e) {
+                            // 파일 검증 오류 발생 시 메시지 추가
+                            redirectAttributes.addFlashAttribute("error", e.getMessage());
+                            return "redirect:/boards";
+                        }
+                    }
                 }
             }
-        }
 
-        return "redirect:/boards";
+            return "redirect:/boards";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "게시글 작성 중 오류가 발생했습니다: " + e.getMessage());
+            return "redirect:/boards/write";
+        }
     }
 
     @GetMapping("/{id}")
